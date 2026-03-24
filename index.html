@@ -3,138 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Education Portal v3.0</title>
+    <title>The Vault | Unblocked</title>
     <style>
-        /* Modern Light Blue Theme */
+        /* Darker, High-Contrast Theme */
         body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background-color: #e0f2fe; /* Light sky blue background */
-            color: #0369a1; /* Darker blue for text */
-            text-align: center; 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background-color: #050a14; /* Very dark midnight blue */
+            color: #e2e8f0; 
             margin: 0; 
-            padding: 20px; 
+            overflow-x: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
         }
 
-        h1 { 
-            color: #0ea5e9; 
-            font-size: 2.5rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 40px; 
+        /* 1. WELCOME SECTION */
+        #welcome-screen {
+            text-align: center;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            position: absolute;
+            z-index: 10;
         }
 
-        /* The Grid */
+        #welcome-screen h1 {
+            font-size: 3.5rem;
+            color: #00d2ff;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        #welcome-screen p {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+            max-width: 500px;
+        }
+
+        .enter-btn {
+            background: linear-gradient(45deg, #00d2ff, #3a86ff);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+        }
+
+        .enter-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.7);
+        }
+
+        /* 2. GAMES SECTION (Hidden by default) */
+        #game-section {
+            display: none; /* Starts hidden */
+            opacity: 0;
+            width: 100%;
+            max-width: 1200px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
         .game-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
-            gap: 25px; 
-            padding: 20px; 
-            max-width: 1100px; 
-            margin: 0 auto; 
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+            gap: 30px; 
+            margin-top: 40px;
         }
 
         /* The Game Card */
         .game-card { 
-            background: white; 
+            background: #0f172a; 
             border-radius: 20px; 
             overflow: hidden; 
-            position: relative; /* Needed for the description overlay */
+            position: relative; 
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            cursor: pointer; 
-            border: none; 
+            border: 1px solid #1e293b;
             text-decoration: none; 
             display: block; 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        /* Hover Animation */
         .game-card:hover { 
-            transform: translateY(-12px) scale(1.02); 
-            box-shadow: 0 20px 25px -5px rgba(14, 165, 233, 0.4); 
+            transform: translateY(-10px); 
+            border-color: #00d2ff;
+            box-shadow: 0 0 25px rgba(0, 210, 255, 0.2);
         }
 
-        .game-img { 
-            width: 100%; 
-            height: 160px; 
-            object-fit: cover; 
-            display: block;
-        }
+        .game-img { width: 100%; height: 180px; object-fit: cover; display: block; }
 
-        .game-info { 
-            padding: 15px; 
-            background: white; 
-        }
+        .game-info { padding: 15px; background: #0f172a; }
 
-        .game-title { 
-            font-weight: 800; 
-            font-size: 1.1rem; 
-            color: #0c4a6e; 
-        }
+        .game-title { font-weight: 800; font-size: 1.1rem; color: #f8fafc; }
 
-        /* Description Overlay (Hidden by default) */
+        /* Hover Overlay */
         .description-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(14, 165, 233, 0.9); /* Transparent light blue */
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            box-sizing: border-box;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            font-size: 0.9rem;
-            font-weight: 500;
-            text-align: center;
-            border-radius: 20px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 210, 255, 0.85);
+            color: #050a14;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box;
+            opacity: 0; transition: 0.3s;
+            font-weight: 600; text-align: center;
         }
 
-        .game-card:hover .description-overlay {
-            opacity: 1;
-        }
+        .game-card:hover .description-overlay { opacity: 1; }
 
-        /* Placeholder */
-        .coming-soon { opacity: 0.6; cursor: default; }
-        .coming-soon:hover { transform: none; box-shadow: none; }
+        /* Utility Class to Show/Hide */
+        .fade-out { opacity: 0; transform: scale(0.9); pointer-events: none; }
+        .fade-in { display: block !important; opacity: 1 !important; transition: 1s ease; }
     </style>
 </head>
 <body>
 
-    <h1>Education Portal v3.0</h1>
-
-    <div class="game-grid">
-        
-        <a href="celeste-game.html" class="game-card">
-            <img src="celeste-thumb.jpeg" class="game-img" />
-            <div class="game-info">
-                <div class="game-title">Celeste Classic</div>
-            </div>
-            <div class="description-overlay">
-                A challenging platformer about climbing a mountain. Precision is key!
-            </div>
-        </a>
-
-        <a href="buckshot-roulette-game.html" class="game-card">
-            <img src="buckshot.jpeg" class="game-img" />
-            <div class="game-info">
-                <div class="game-title">Buckshot Roulette</div>
-            </div>
-            <div class="description-overlay">
-                A high-stakes game of chance. Strategy and luck are your only friends.
-            </div>
-        </a>
-
-        <div class="game-card coming-soon">
-            <div style="height: 160px; display: flex; align-items: center; justify-content: center; font-size: 50px; background: #bae6fd;">❓</div>
-            <div class="game-info">
-                <div class="game-title">More coming...</div>
-            </div>
-        </div>
-
+    <div id="welcome-screen">
+        <h1>THE VAULT</h1>
+        <p>Your private portal for academic "research" and high-performance simulations.</p>
+        <button class="enter-btn" onclick="showGames()">GAMES</button>
     </div>
+
+    <div id="game-section">
+        <h2 style="color: #00d2ff; font-size: 2rem;">Game Library</h2>
+        
+        <div class="game-grid">
+            
+            <a href="celeste-game.html" class="game-card">
+                <img src="celeste-thumb.jpeg" class="game-img" />
+                <div class="game-info">
+                    <div class="game-title">Celeste Classic</div>
+                </div>
+                <div class="description-overlay">Precision platforming at its finest. Reach the summit.</div>
+            </a>
+
+            <a href="buckshot-roulette-game.html" class="game-card">
+                <img src="buckshot.jpeg" class="game-img" />
+                <div class="game-info">
+                    <div class="game-title">Buckshot Roulette</div>
+                </div>
+                <div class="description-overlay">A gritty game of strategy and nerves.</div>
+            </a>
+
+        </div>
+    </div>
+
+    <script>
+        function showGames() {
+            // Hide the welcome screen
+            const welcome = document.getElementById('welcome-screen');
+            welcome.classList.add('fade-out');
+
+            // Show the game section after a short delay for animation
+            setTimeout(() => {
+                welcome.style.display = 'none';
+                const games = document.getElementById('game-section');
+                games.classList.add('fade-in');
+                // Change body to allow scrolling once games appear
+                document.body.style.display = 'block';
+            }, 600);
+        }
+    </script>
 
 </body>
 </html>
