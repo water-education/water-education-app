@@ -1,34 +1,30 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="style.css">
-    <title>Estudio de Biología Aviar</title>
-    <style>
-        /* Ajuste para que el fondo se vea bien */
-        body { background: url('img/background.png') no-repeat center center fixed; background-size: cover; }
-        .login-card { background: rgba(0, 0, 0, 0.6) !important; border: 1px solid #444; }
-    </style>
+    <title>Chlorhuhn - Simulación</title>
   </head>
   <body>
-    <div id="mainContainer" class="container mt-5">
+    <button id="start-simulation" style="display: none;"></button>
+
+    <div id="mainContainer" class="container">
         <div class="row">
             <div class="col"></div>
-            <div class="col-md-6 text-center">
-                <div class="card login-card">
-                    <div class="card-body">
+            <div class="col-4">
+                <div class="card login-card" id="login-card">
+                    <div class="card-body" id="login-card-body">
                         <div class="page-header">
-                            <h1 class="text-white">Análisis de Población Aviar</h1>
+                            <h1 class="text-white">Chlorhuhn</h1>
                         </div>
-                        <h6 class="card-subtitle mb-4 text-info">MÓDULO DE SIMULACIÓN V.2.4</h6>
-                        
-                        <p class="text-white small">Esta herramienta analiza el comportamiento de aves en entornos controlados para estudios de impacto ambiental.</p>
-                        
-                        <div id="simulation-controls">
-                            <button id="start-simulation" class="btn btn-lg btn-outline-light btn-block">INICIAR SIMULACIÓN</button>
+                        <h6 class="card-subtitle mb-2 text-white top-buffer">MODO SIMULACIÓN</h6>
+                        <div id="login-form">
+                            <p class="text-white">Cargando simulador de agua...</p>
+                            <div class="btn-group">
+                                <button id="login" class="btn btn-outline-light">Conectar</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -38,24 +34,10 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     
+    <script src="jquery.min.js"></script>
     <script src="game.js"></script>
-
-    <script>
-        // Truco para engañar al juego y que crea que ya iniciamos sesión
-        $(document).ready(function() {
-            $('#start-simulation').click(function() {
-                // Si el juego usa una función llamada initGame o similar en game.js
-                // la llamamos aquí. Por ahora, intentaremos que el botón active
-                // la lógica que normalmente activaría el botón de "Anmelden"
-                console.log("Iniciando simulación...");
-                
-                // Si el archivo game.js carga el canvas automáticamente, 
-                // este botón servirá para ocultar el menú.
-                $('#mainContainer').fadeOut();
-            });
-        });
-    </script>
   </body>
 </html>
