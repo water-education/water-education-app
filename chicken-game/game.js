@@ -1,4 +1,4 @@
-const TEST_MODE = false;
+const TEST_MODE = true;
 const PLAYER_ROLE = "h";
 const MY_CHICKEN_ID = 1;
 const TOTAL_LIVES = 5;
