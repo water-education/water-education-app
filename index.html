@@ -12,6 +12,7 @@
             --accent: #f43f5e;
             --bg: #030712;
             --card-bg: rgba(30, 41, 59, 0.7);
+            --bounce: cubic-bezier(0.68, -0.6, 0.32, 1.6);
         }
 
         body { 
@@ -26,40 +27,45 @@
             overflow-x: hidden;
         }
 
-        /* Mouse Follower Glow */
         #cursor-glow {
             position: fixed;
             top: 0; left: 0;
             width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
             border-radius: 50%;
             pointer-events: none;
             transform: translate(-50%, -50%);
             z-index: -1;
-            transition: width 0.3s, height 0.3s;
         }
 
-        /* Welcome Screen UI */
+        /* --- WELCOME SCREEN --- */
         #welcome-screen {
             text-align: center;
             transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
             max-width: 600px;
             padding: 60px;
             background: var(--card-bg);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 40px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
         }
 
         h1 {
-            font-size: 4rem;
+            font-size: 5rem;
             font-weight: 900;
             margin: 0;
-            background: linear-gradient(to right, var(--primary), var(--secondary));
+            background: linear-gradient(to right, var(--primary), var(--secondary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -2px;
+            letter-spacing: -3px;
+            filter: drop-shadow(0 10px 20px rgba(56, 189, 248, 0.3));
         }
 
         .enter-btn {
@@ -71,87 +77,100 @@
             font-weight: 800;
             border-radius: 20px;
             cursor: pointer;
-            transition: 0.3s all;
+            transition: 0.4s var(--bounce);
             box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3);
             margin-top: 30px;
         }
 
         .enter-btn:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 20px 30px rgba(168, 85, 247, 0.4);
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 0 20px 40px rgba(168, 85, 247, 0.5);
         }
 
-        /* Game Section */
+        /* --- CATEGORY INTERFACE --- */
         #game-section {
             display: none; 
             opacity: 0;
             width: 90%;
             max-width: 1300px;
-            padding: 60px 20px;
+            padding: 40px 20px;
             text-align: center;
         }
 
-        .vault-header {
-            font-size: 5rem;
-            font-weight: 900;
-            margin-bottom: 50px;
-            text-transform: uppercase;
-            letter-spacing: -4px;
-            color: #fff;
-            text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        .category-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
         }
 
+        .cat-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.3s var(--bounce);
+        }
+
+        .cat-btn:hover, .cat-btn.active {
+            background: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.4);
+        }
+
+        /* --- GAME GRID --- */
         .game-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
-            gap: 30px; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 25px; 
         }
 
         .game-card { 
             background: var(--card-bg); 
-            backdrop-filter: blur(10px);
             border-radius: 24px; 
             overflow: hidden; 
             position: relative; 
-            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            transition: 0.6s var(--bounce); 
             border: 1px solid rgba(255,255,255,0.1);
             text-decoration: none; 
             display: block; 
-            opacity: 0; /* Handled by JS animation */
-            transform: translateY(30px);
+            opacity: 0;
+            transform: translateY(40px) scale(0.9);
         }
 
         .game-card:hover { 
-            transform: translateY(-15px) scale(1.03); 
-            border-color: var(--primary);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            transform: translateY(-15px) scale(1.05) rotate(1deg); 
+            border-color: var(--secondary);
             z-index: 10;
         }
 
-        .game-img { width: 100%; height: 160px; object-fit: cover; transition: 0.5s; }
-        .game-card:hover .game-img { transform: scale(1.1); filter: brightness(1.2); }
+        .game-img { width: 100%; height: 180px; object-fit: cover; transition: 0.5s ease; }
+        .game-card:hover .game-img { transform: scale(1.15); }
 
-        .game-info { padding: 20px; text-align: left; background: rgba(15, 23, 42, 0.8); }
+        .game-info { padding: 20px; text-align: left; background: #0f172a; }
         .game-title { font-weight: 900; font-size: 1.2rem; color: #fff; }
 
-        /* Smooth Overlay */
         .description-overlay {
             position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(56, 189, 248, 0.9), rgba(168, 85, 247, 0.9));
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.95), rgba(168, 85, 247, 0.95));
             color: #fff;
             display: flex; align-items: center; justify-content: center;
             padding: 25px; opacity: 0;
-            transition: 0.4s;
-            font-weight: 700; text-align: center; font-size: 1.1rem;
-            transform: translateY(100%);
+            transition: 0.4s var(--bounce);
+            font-weight: 800; text-align: center;
+            transform: scale(0.8) translateY(20px);
         }
 
-        .game-card:hover .description-overlay { opacity: 1; transform: translateY(0); }
+        .game-card:hover .description-overlay { opacity: 1; transform: scale(1) translateY(0); }
 
         .show-content { display: block !important; opacity: 1 !important; }
 
         @keyframes cardPop {
-            to { opacity: 1; transform: translateY(0); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
     </style>
 </head>
@@ -161,84 +180,82 @@
 
     <div id="welcome-screen">
         <h1>THE VAULT</h1>
-        <p style="font-size: 1.2rem; color: #94a3b8; margin-top: 15px;">v1.0 • Security Cleared • Ready to Play</p>
-        <button class="enter-btn" onclick="openVault()">ACCESS FILES</button>
+        <p style="font-size: 1.2rem; color: #94a3b8; margin-top: 15px; font-weight: 700;">PREMIUM ACCESS GRANTED</p>
+        <button class="enter-btn" onclick="openVault()">LAUNCH SYSTEM</button>
     </div>
 
     <div id="game-section">
-        <h2 class="vault-header">LIBRARY</h2>
+        <div class="category-bar">
+            <button class="cat-btn active" onclick="filterGames('all')">ALL GAMES</button>
+            <button class="cat-btn" onclick="filterGames('platformer')">PLATFORMERS</button>
+            <button class="cat-btn" onclick="filterGames('action')">ACTION</button>
+            <button class="cat-btn" onclick="filterGames('extra')">EXTRAS</button>
+        </div>
         
-        <div class="game-grid">
-            <a href="celeste-game.html" class="game-card">
+        <div class="game-grid" id="main-grid">
+            <a href="celeste-game.html" class="game-card" data-cat="platformer">
                 <img src="celeste-thumb.jpeg" class="game-img" />
                 <div class="game-info"><div class="game-title">🏔️ Celeste Classic</div></div>
                 <div class="description-overlay">CLIMB THE MOUNTAIN! 🍓</div>
             </a>
 
-            <a href="buckshot-roulette-game.html" class="game-card">
-                <img src="buckshot.jpeg" class="game-img" />
-                <div class="game-info"><div class="game-title">🔫 Buckshot Roulette</div></div>
-                <div class="description-overlay">A high-stakes gamble for your soul. 💀</div>
-            </a>
-
-            <a href="crazy-chicken-game.html" class="game-card">
-                <img src="crazy.jpeg" class="game-img" />
-                <div class="game-info"><div class="game-title">🐔 Crazy Chicken 3D</div></div>
-                <div class="description-overlay">Absolute poultry chaos. 🥚</div>
-            </a>
-
-            <a href="Meatboy.html" class="game-card">
+            <a href="Meatboy.html" class="game-card" data-cat="platformer">
                 <img src="meat.jpeg" class="game-img" />
                 <div class="game-info"><div class="game-title">🥩 Super Meat Boy</div></div>
                 <div class="description-overlay">Precision platforming at its bloodiest. ⚙️</div>
             </a>
 
-            <a href="cuphead-game.html" class="game-card">
+            <a href="buckshot-roulette-game.html" class="game-card" data-cat="action">
+                <img src="buckshot.jpeg" class="game-img" />
+                <div class="game-info"><div class="game-title">🔫 Buckshot Roulette</div></div>
+                <div class="description-overlay">A high-stakes gamble for your soul. 💀</div>
+            </a>
+
+            <a href="cuphead-game.html" class="game-card" data-cat="action">
                 <img src="cuphead.png" class="game-img" />
                 <div class="game-info"><div class="game-title">☕ Cuphead</div></div>
                 <div class="description-overlay">Don't deal with the Devil. 😈</div>
             </a>
 
-            <a href="hollow-knight.html" class="game-card">
+            <a href="hollow-knight.html" class="game-card" data-cat="action">
                 <img src="hollow.jpg" class="game-img" />
                 <div class="game-info"><div class="game-title">⚔️ Hollow Knight</div></div>
                 <div class="description-overlay">Explore the depths of Hallownest. 🐜</div>
             </a>
 
-            <a href="Soundboard.html" class="game-card">
-                <img src="button.jpg" class="game-img" />
-                <div class="game-info"><div class="game-title">🔊 Soundboard</div></div>
-                <div class="description-overlay">Spam the memes. 📢</div>
-            </a>
-
-            <a href="isaac.html" class="game-card">
+            <a href="isaac.html" class="game-card" data-cat="action">
                 <img src="350.png" class="game-img" />
                 <div class="game-info"><div class="game-title">💧 The Binding of Isaac</div></div>
                 <div class="description-overlay">Roguelike tears and basement fears. 😭</div>
             </a>
 
-            <a href="bounce.html" class="game-card">
+            <a href="crazy-chicken-game.html" class="game-card" data-cat="extra">
+                <img src="crazy.jpeg" class="game-img" />
+                <div class="game-info"><div class="game-title">🐔 Crazy Chicken 3D</div></div>
+                <div class="description-overlay">Absolute poultry chaos. 🥚</div>
+            </a>
+
+            <a href="Soundboard.html" class="game-card" data-cat="extra">
+                <img src="button.jpg" class="game-img" />
+                <div class="game-info"><div class="game-title">🔊 Soundboard</div></div>
+                <div class="description-overlay">Spam the memes. 📢</div>
+            </a>
+
+            <a href="bounce.html" class="game-card" data-cat="extra">
                 <img src="437.png" class="game-img" />
                 <div class="game-info"><div class="game-title">🐧 Bouncemasters</div></div>
                 <div class="description-overlay">Launch that penguin to the moon! 🚀</div>
             </a>
 
-            <a href="cookie.html" class="game-card">
+            <a href="cookie.html" class="game-card" data-cat="extra">
                 <img src="82.png" class="game-img" />
                 <div class="game-info"><div class="game-title">🍪 Cookie Clicker</div></div>
                 <div class="description-overlay">The cookies must flow. 🖱️</div>
-            </a>
-
-            <a href="undertale/UNDERTALE.html" class="game-card">
-                <img src="under.png" class="game-img" />
-                <div class="game-info"><div class="game-title">❤️ UNDERTALE</div></div>
-                <div class="description-overlay">DETERMINATION. 💀</div>
             </a>
         </div>
     </div>
 
     <script>
-        // Cursor Follower
         const glow = document.getElementById('cursor-glow');
         window.addEventListener('mousemove', (e) => {
             glow.style.left = e.clientX + 'px';
@@ -247,7 +264,7 @@
 
         function openVault() {
             const welcome = document.getElementById('welcome-screen');
-            welcome.style.transform = 'scale(0.8) translateY(-100px)';
+            welcome.style.transform = 'scale(0.5) rotate(-10deg)';
             welcome.style.opacity = '0';
 
             setTimeout(() => {
@@ -255,15 +272,36 @@
                 const section = document.getElementById('game-section');
                 section.classList.add('show-content');
                 
-                // Staggered card animation
-                const cards = document.querySelectorAll('.game-card');
-                cards.forEach((card, index) => {
-                    card.style.animation = `cardPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.1}s forwards`;
-                });
+                animateCards();
 
                 document.body.style.alignItems = 'flex-start';
                 window.scrollTo({top: 0, behavior: 'smooth'});
             }, 600);
+        }
+
+        function animateCards() {
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach((card, index) => {
+                card.style.animation = 'none';
+                card.offsetHeight; /* trigger reflow */
+                card.style.animation = `cardPop 0.7s var(--bounce) ${index * 0.08}s forwards`;
+            });
+        }
+
+        function filterGames(category) {
+            // Update Buttons
+            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-cat') === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            animateCards();
         }
     </script>
 </body>
