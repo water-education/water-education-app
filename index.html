@@ -313,7 +313,7 @@
             cards.forEach((card) => {
                 if(card.style.display !== 'none') {
                     card.style.animation = 'none';
-                    card.offsetHeight; /* disparar reflujo */
+                    card.offsetHeight; /* trigger reflow */
                     card.style.animation = `cardPop 0.7s var(--bounce) ${visibleIndex * 0.08}s forwards`;
                     visibleIndex++;
                 }
@@ -321,6 +321,7 @@
         }
 
         function filterGames(category, btn) {
+            // Actualizar botones
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
