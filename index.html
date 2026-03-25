@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Water Education v0.1 - GOOFY EDITION</title>
+    <title>Water Education v1 - GOOFIEST EDITION</title>
     <style>
-        /* Goofy Neon Theme */
+        /* Rainbow Bouncy Theme */
         body { 
             font-family: 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif; 
-            background-color: #0f172a;
-            background-image: radial-gradient(#1e293b 2px, transparent 2px);
-            background-size: 30px 30px; /* Polka dot background */
+            background-color: #070a13;
+            background-image: 
+                radial-gradient(#1e293b 2px, transparent 2px),
+                linear-gradient(45deg, #070a13 25%, #0c1222 25%, #0c1222 50%, #070a13 50%, #070a13 75%, #0c1222 75%, #0c1222 100%);
+            background-size: 30px 30px, 100px 100px;
             color: #f1f5f9; 
             margin: 0; 
             display: flex;
@@ -20,146 +22,158 @@
             overflow-x: hidden;
         }
 
-        /* Floating Background Bubbles */
+        /* Floating Blobs */
         .bubble {
-            position: absolute;
-            background: rgba(56, 189, 248, 0.2);
-            border-radius: 50%;
+            position: fixed;
+            background: linear-gradient(135deg, #38bdf8, #a855f7);
+            border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%;
             z-index: -1;
-            animation: float 10s infinite ease-in-out;
+            opacity: 0.3;
+            animation: moveAround 15s infinite linear alternate;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-100px) rotate(20deg); }
+        @keyframes moveAround {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            100% { transform: translate(100vw, 50vh) rotate(360deg) scale(1.5); }
         }
 
-        /* LANDING PAGE SECTION */
+        /* WELCOME SCREEN */
         #welcome-screen {
             text-align: center;
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            max-width: 600px;
-            padding: 40px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 5px solid #a855f7;
-            border-radius: 40px;
-            transform: rotate(-2deg);
+            transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 650px;
+            padding: 50px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 8px solid #4ade80;
+            border-radius: 60px;
+            box-shadow: 20px 20px 0px #a855f7;
+            transform: rotate(-1deg);
         }
 
         #welcome-screen h1 {
-            font-size: 4rem;
-            color: #22d3ee;
-            text-shadow: 5px 5px #a855f7;
-            margin-bottom: 10px;
-            animation: wigglev1 0.3s infinite alternate;
+            font-size: 4.5rem;
+            background: linear-gradient(to right, #38bdf8, #4ade80, #f43f5e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(4px 4px 0px #000);
+            margin-bottom: 5px;
+            animation: bounce 0.5s infinite alternate cubic-bezier(.5,0,.5,1);
         }
 
-        @keyframes wigglev1 {
-            from { transform: rotate(-1deg); }
-            to { transform: rotate(1deg); }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
         }
 
         .enter-btn {
             background: #f43f5e;
             color: white;
-            border: 4px solid #fff;
-            padding: 20px 50px;
-            font-size: 1.5rem;
+            border: 6px solid #fff;
+            padding: 25px 60px;
+            font-size: 1.8rem;
             font-weight: 900;
-            border-radius: 50px;
+            border-radius: 100px;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 10px 0 #9f1239;
+            transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 12px 0 #9f1239;
+            text-transform: uppercase;
         }
 
         .enter-btn:hover {
-            transform: scale(1.1) rotate(5deg);
-            background: #fb7185;
+            transform: scale(1.15) rotate(-3deg);
+            background: #22d3ee;
+            box-shadow: 0 15px 0 #0891b2;
+            border-color: #000;
         }
 
         .enter-btn:active {
-            transform: translateY(5px);
-            box-shadow: 0 5px 0 #9f1239;
+            transform: scale(0.9) translateY(10px);
+            box-shadow: 0 0 0 #000;
         }
 
-        /* GAMES SECTION */
+        /* GAME SECTION */
         #game-section {
             display: none; 
             opacity: 0;
             width: 100%;
-            max-width: 1100px;
-            padding: 50px 20px;
+            max-width: 1200px;
+            padding: 40px;
             text-align: center;
         }
 
         .game-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 40px; 
+            gap: 35px; 
             margin-top: 50px;
         }
 
-        /* Goofy Card Styles */
         .game-card { 
             background: #1e293b; 
-            border-radius: 30px; 
+            border-radius: 40px; 
             overflow: hidden; 
             position: relative; 
-            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            border: 6px solid #38bdf8;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            border: 8px solid #38bdf8;
             text-decoration: none; 
             display: block; 
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
         }
 
-        .game-card:nth-child(even) { transform: rotate(2deg); border-color: #a855f7; }
-        .game-card:nth-child(odd) { transform: rotate(-2deg); border-color: #4ade80; }
+        /* Random card tilts */
+        .game-card:nth-child(4n+1) { transform: rotate(-2deg); border-color: #4ade80; }
+        .game-card:nth-child(4n+2) { transform: rotate(3deg); border-color: #a855f7; }
+        .game-card:nth-child(4n+3) { transform: rotate(-1.5deg); border-color: #facc15; }
+        .game-card:nth-child(4n+4) { transform: rotate(2deg); border-color: #f43f5e; }
 
         .game-card:hover { 
-            transform: translateY(-15px) scale(1.05) rotate(0deg) !important; 
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
-            z-index: 10;
+            transform: translateY(-20px) scale(1.1) rotate(0deg) !important; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            z-index: 99;
+            border-color: #fff;
         }
 
-        .game-img { width: 100%; height: 200px; object-fit: cover; }
+        .game-img { width: 100%; height: 210px; object-fit: cover; transition: 0.5s; }
+        .game-card:hover .game-img { transform: scale(1.1); }
 
-        .game-info { padding: 20px; background: #1e293b; }
+        .game-info { padding: 25px; background: #1e293b; text-align: left; }
+        .game-title { font-weight: 900; font-size: 1.5rem; color: #fff; text-shadow: 2px 2px #000; }
 
-        .game-title { font-weight: 900; font-size: 1.4rem; color: #fff; }
-
-        /* Description Pop-up */
         .description-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.95);
+            background: #fff;
             color: #000;
             display: flex; align-items: center; justify-content: center;
-            padding: 20px; box-sizing: border-box;
-            opacity: 0; transition: 0.2s;
-            font-weight: bold; transform: translateY(100%);
+            padding: 30px; box-sizing: border-box;
+            opacity: 0; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-weight: 900; transform: scale(0) rotate(-45deg);
+            text-align: center; font-size: 1.2rem;
         }
 
-        .game-card:hover .description-overlay { opacity: 1; transform: translateY(0); }
+        .game-card:hover .description-overlay { opacity: 1; transform: scale(1) rotate(0deg); }
 
-        .show-content { display: block !important; opacity: 1 !important; animation: popIn 0.8s ease forwards; }
+        .show-content { display: block !important; opacity: 1 !important; animation: popUp 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
-        @keyframes popIn {
-            0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        @keyframes popUp {
+            0% { transform: translateY(100vh) scale(0); }
+            100% { transform: translateY(0) scale(1); }
         }
     </style>
 </head>
 <body>
 
-    <div class="bubble" style="width: 100px; height: 100px; top: 10%; left: 10%;"></div>
-    <div class="bubble" style="width: 150px; height: 150px; bottom: 20%; right: 10%; animation-delay: 2s;"></div>
+    <div class="bubble" style="width: 200px; height: 200px; top: -50px; left: -50px;"></div>
+    <div class="bubble" style="width: 300px; height: 300px; bottom: -100px; right: -100px; animation-delay: -5s;"></div>
 
     <div id="welcome-screen">
-        <h1>WATER ED v0.1</h1>
-        <p>This is probably educational? I don't know, just click the big red button below to find out! 🦆</p>
-        <button class="enter-btn" onclick="openVault()">CLICK ME!!</button>
+        <h1>WATER ED v1!! 🌊</h1>
+        <p style="font-size: 1.3rem; font-weight: bold; color: #94a3b8;">Welcome to v1. Click below to enter the Vault! 🦆</p>
+        <br>
+        <button class="enter-btn" onclick="openVault()">LAUNCH v1</button>
     </div>
 
     <div id="game-section">
-        <h2 style="color: #4ade80; font-size: 3rem; text-shadow: 3px 3px #000;">THE GAME VAULT</h2>
+        <h2 style="color: #fff; font-size: 4rem; text-shadow: 6px 6px #f43f5e; margin: 0;">🕹️ THE VAULT v1 🕹️</h2>
         
         <div class="game-grid">
             
@@ -168,7 +182,7 @@
                 <div class="game-info">
                     <div class="game-title">🏔️ Celeste Classic</div>
                 </div>
-                <div class="description-overlay">CLIMB THE MOUNTAIN! DON'T FALL!!</div>
+                <div class="description-overlay">CLIMB THE MOUNTAIN! 🍓</div>
             </a>
 
             <a href="buckshot-roulette-game.html" class="game-card">
@@ -176,7 +190,7 @@
                 <div class="game-info">
                     <div class="game-title">🔫 Buckshot Roulette</div>
                 </div>
-                <div class="description-overlay">VERY SCARY ODDS. GOOD LUCK!</div>
+                <div class="description-overlay">VERY SCARY! 💀 CALCULATED RISKS ONLY!</div>
             </a>
             
             <a href="crazy-chicken-game.html" class="game-card">
@@ -185,49 +199,42 @@
                     <div class="game-title">🐔 Crazy Chicken 3D</div>
                     <p style="color: #faa; font-size: 14px;">The Teasle Classic</p>
                 </div>
-                <div class="description-overlay">CHICKENS EVERYWHERE! RUN!</div>
+                <div class="description-overlay">CHICKENS EVERYWHERE! RUN! 🥚</div>
             </a>
             
             <a href="Meatboy.html" class="game-card">
                 <img src="meat.jpeg" class="game-img" />
                 <div class="game-info">
-                    <div class="game-title">Super meat boy</div>
-                    <p style="color: #faa; font-size: 14px;">Meat</p>
+                    <div class="game-title">🥩 Super Meat Boy</div>
+                    <p style="color: #faa; font-size: 14px;">Meat Madness</p>
                 </div>
-                <div class="description-overlay">Super meat boy game run but don't get killed</div>
+                <div class="description-overlay">RUN BUT DONT GET KILLED BY SAWS! ⚙️</div>
             </a>
             
             <a href="cuphead-game.html" class="game-card">
                 <img src="cuphead.png" class="game-img" />
                 <div class="game-info">
-                    <div class="game-title">Cuphead</div>
+                    <div class="game-title">☕ Cuphead</div>
                 </div>
-                <div class="description-overlay">Be a cup and defeat bosses</div>
+                <div class="description-overlay">DEFEAT BOSSES! 😈</div>
             </a>
             
             <a href="hollow-knight.html" class="game-card">
                 <img src="hollow.jpg" class="game-img" />
                 <div class="game-info">
-                    <div class="game-title">Hollow knight</div>
+                    <div class="game-title">⚔️ Hollow Knight</div>
                 </div>
-                <div class="description-overlay">Be a dark knight and slay everything across your path</div>
+                <div class="description-overlay">SLAY EVERYTHING! 🐜</div>
             </a>
             
             <a href="Soundboard.html" class="game-card">
                 <img src="button.jpg" class="game-img" />
                 <div class="game-info">
-                    <div class="game-title">Soundboard</div>
-                    <p style="color: #faa; font-size: 14px;">My instants</p>
+                    <div class="game-title">🔊 Soundboard</div>
+                    <p style="color: #faa; font-size: 14px;">My Instants</p>
                 </div>
-                <div class="description-overlay">Just play sound i guess...</div>
+                <div class="description-overlay">SPAM THE MEME SOUNDS! 📢</div>
             </a>
-            
-            <div class="game-card" style="border-style: dashed; opacity: 0.7;">
-                <div style="height: 200px; display: flex; align-items: center; justify-content: center; font-size: 80px; background: #334155;">❓</div>
-                <div class="game-info">
-                    <div class="game-title">Coming Soon...</div>
-                </div>
-            </div>
 
         </div>
     </div>
@@ -235,7 +242,7 @@
     <script>
         function openVault() {
             const welcome = document.getElementById('welcome-screen');
-            welcome.style.transform = 'scale(0) rotate(500deg)';
+            welcome.style.transform = 'scale(0) rotate(720deg) translateY(-500px)';
             welcome.style.opacity = '0';
 
             setTimeout(() => {
@@ -243,10 +250,9 @@
                 const games = document.getElementById('game-section');
                 games.classList.add('show-content');
                 document.body.style.alignItems = 'flex-start';
-                window.scrollTo(0, 0);
-            }, 600);
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }, 700);
         }
     </script>
-    
 </body>
 </html>
