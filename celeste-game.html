@@ -2,7 +2,7 @@
 <html>
 <head>
     <base href="https://cdn.jsdelivr.net/gh/web-ports/celeste@4f043a5ce121b74dc54ce56d74f213a2eeea6b4e/">
-    <title>Celeste Port - Steam Optimizer</title>
+    <title>Celeste - Steam Fixed</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
@@ -10,75 +10,43 @@
     <link rel="stylesheet" href="styles.css" />
 
     <style>
-        body { 
-            background-color: #050505; 
-            margin: 0; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            height: 100vh; 
-            color: #fff; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-        }
-        #loading-textt { font-size: 22px; color: #7bceff; font-weight: bold; margin-bottom: 15px; }
-        
-        /* Barra estilo Steam */
-        #progress-container { width: 350px; height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
-        #progress-fill { width: 0%; height: 100%; background: #4ca3ff; box-shadow: 0 0 10px #4ca3ff; transition: width 0.2s; }
-        
-        #diag-box { 
-            margin-top: 20px; 
-            padding: 15px; 
-            background: rgba(255,255,255,0.05); 
-            border-radius: 8px; 
-            font-size: 11px; 
-            color: #888; 
-            width: 320px;
-            font-family: monospace;
-        }
-        .highlight { color: #00ff00; }
-        #current-file { color: #ffca22; display: block; margin-top: 5px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+        body { background-color: #050505; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: #fff; font-family: sans-serif; }
+        #loading-textt { font-size: 20px; color: #4ca3ff; margin-bottom: 10px; }
+        #progress-container { width: 300px; height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
+        #progress-fill { width: 0%; height: 100%; background: #4ca3ff; transition: width 0.2s; }
+        #diag { margin-top: 15px; font-size: 11px; color: #666; font-family: monospace; }
+        .danger { color: #ff4444; font-weight: bold; }
     </style>
 
     <script>
-        // --- OPTIMIZACIÓN STEAM (RAM CONTROL) ---
-        window.Module = {
-            preRun: [],
-            postRun: [],
-            // Empieza con lo mínimo posible para que Chrome no se asuste
-            initialMemory: 33554432, // 32MB
-            allowMemoryGrowth: true, 
-            
-            setStatus: function(text) {
-                const loader = document.getElementById('loading-textt');
-                const fileDisp = document.getElementById('current-file');
-                
-                if (text.includes("Initializing runtime")) {
-                    loader.innerText = "ARRANCANDO RUNTIME STEAM...";
-                    loader.style.color = "#4ca3ff";
-                } else if (text === "") {
-                    loader.innerText = "¡MONTAÑA CARGADA!";
-                } else {
-                    fileDisp.innerText = "> " + text;
-                }
-            },
+        let totalBytes = 0;
+        const MAX_ALLOWED_MB = 40; // Si pasa de 40MB en una Chromebook, algo anda mal
 
-            onRuntimeInitialized: function() {
-                document.getElementById('progress-fill').style.width = "100%";
-                setTimeout(() => { document.body.style.cursor = "default"; }, 2000);
+        window.Module = {
+            initialMemory: 33554432,
+            allowMemoryGrowth: true,
+            setStatus: function(text) {
+                const status = document.getElementById('status-msg');
+                if (text.includes("Initializing")) {
+                    status.innerText = "INICIANDO MOTOR STEAM...";
+                } else if (text) {
+                    status.innerText = text;
+                }
             }
         };
 
-        // --- MONITOR DE DESCARGA DE MB ---
-        let bytesCargados = 0;
+        // INTERCEPTOR ANTI-BUCLE (Corrige el error de los 600MB)
         const originalFetch = window.fetch;
         window.fetch = async (...args) => {
+            const url = args[0].toString();
+            // Si el motor intenta pedir "data.data.data", bloqueamos la petición basura
+            if (url.includes("data.data")) {
+                console.error("Bucle detectado y bloqueado");
+                return new Response("", { status: 404 });
+            }
+
             const response = await originalFetch(...args);
             const reader = response.body.getReader();
-            const url = args[0].toString();
-            const name = url.substring(url.lastIndexOf('/') + 1) || "asset";
 
             return new Response(new ReadableStream({
                 start(controller) {
@@ -86,15 +54,20 @@
                         reader.read().then(({done, value}) => {
                             if (done) { controller.close(); return; }
                             
-                            bytesCargados += value.byteLength;
-                            let mb = (bytesCargados / (1024 * 1024)).toFixed(2);
-                            document.getElementById('mb-val').innerText = mb;
-                            document.getElementById('current-file').innerText = "Cargando: " + name;
+                            totalBytes += value.byteLength;
+                            let mb = (totalBytes / (1024 * 1024)).toFixed(2);
+                            document.getElementById('mb-count').innerText = mb;
 
-                            // Actualización visual de barra (basado en el peso total de Celeste ~20MB)
-                            let p = Math.min((bytesCargados / 22000000) * 100, 95);
+                            // FRENO DE EMERGENCIA
+                            if (parseFloat(mb) > MAX_ALLOWED_MB) {
+                                document.getElementById('loading-textt').innerHTML = "<span class='danger'>ERROR DE MEMORIA DETECTADO</span>";
+                                document.getElementById('status-msg').innerText = "Reiniciando para evitar crash...";
+                                location.reload(); // Recarga la página antes de que se trabe la laptop
+                                return;
+                            }
+
+                            let p = Math.min((totalBytes / 25000000) * 100, 95);
                             document.getElementById('progress-fill').style.width = p + "%";
-
                             controller.enqueue(value);
                             read();
                         });
@@ -111,16 +84,12 @@
 </head>
 
 <body>
-    <div id="loading-textt">STEAM ENGINE LOADING...</div>
+    <div id="loading-textt">STEAM VERSION - OPTIMIZED</div>
     <div id="progress-container"><div id="progress-fill"></div></div>
     
-    <div id="diag-box">
-        DATOS: <span id="mb-val" class="highlight">0.00</span> MB / ~22.00 MB<br>
-        <span id="current-file">Esperando conexión...</span>
-    </div>
-
-    <div style="margin-top: 20px; font-size: 9px; color: #333;">
-        MODO: LOW-RAM OPTIMIZED | NO ADS | NO TRACKERS
+    <div id="diag">
+        <span id="status-msg">Cargando archivos...</span><br>
+        Lectura: <span id="mb-count">0.00</span> MB / 22.00 MB
     </div>
 </body>
 </html>
