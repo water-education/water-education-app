@@ -36,6 +36,7 @@
             pointer-events: none;
             transform: translate(-50%, -50%);
             z-index: -1;
+            transition: background 0.5s ease;
         }
 
         /* --- WELCOME SCREEN --- */
@@ -103,13 +104,17 @@
             gap: 15px;
             margin-bottom: 40px;
             flex-wrap: wrap;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
         }
 
         .cat-btn {
-            background: rgba(255,255,255,0.05);
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.1);
             color: white;
-            padding: 10px 25px;
+            padding: 12px 28px;
             border-radius: 50px;
             cursor: pointer;
             font-weight: 700;
@@ -118,7 +123,7 @@
 
         .cat-btn:hover, .cat-btn.active {
             background: var(--primary);
-            transform: translateY(-5px);
+            transform: translateY(-5px) scale(1.05);
             box-shadow: 0 10px 20px rgba(56, 189, 248, 0.4);
         }
 
@@ -144,7 +149,7 @@
 
         .game-card:hover { 
             transform: translateY(-15px) scale(1.05) rotate(1deg); 
-            border-color: var(--secondary);
+            border-color: var(--primary);
             z-index: 10;
         }
 
@@ -186,10 +191,10 @@
 
     <div id="game-section">
         <div class="category-bar">
-            <button class="cat-btn active" onclick="filterGames('all')">ALL GAMES</button>
-            <button class="cat-btn" onclick="filterGames('platformer')">PLATFORMERS</button>
-            <button class="cat-btn" onclick="filterGames('action')">ACTION</button>
-            <button class="cat-btn" onclick="filterGames('extra')">EXTRAS</button>
+            <button class="cat-btn active" onclick="filterGames('all', this)">ALL GAMES</button>
+            <button class="cat-btn" onclick="filterGames('platformer', this)">PLATFORMERS</button>
+            <button class="cat-btn" onclick="filterGames('action', this)">ACTION</button>
+            <button class="cat-btn" onclick="filterGames('extra', this)">EXTRAS</button>
         </div>
         
         <div class="game-grid" id="main-grid">
@@ -229,10 +234,16 @@
                 <div class="description-overlay">Roguelike tears and basement fears. 😭</div>
             </a>
 
-            <a href="10minutes.html" class="game-card" data-cat="action">
-                <img src="430.png" class="game-img" />
+            <a href="ten-minutes.html" class="game-card" data-cat="action">
+                <img src="tenminutes.jpg" class="game-img" />
                 <div class="game-info"><div class="game-title">🌑 10 Mins Till Dawn</div></div>
                 <div class="description-overlay">Survive the night, one bullet at a time. 🕯️</div>
+            </a>
+
+            <a href="clover-pit.html" class="game-card" data-cat="extra" onmouseover="changeGlow('#4ade80')" onmouseout="changeGlow('rgba(168, 85, 247, 0.15)')">
+                <img src="clover.jpg" class="game-img" />
+                <div class="game-info"><div class="game-title">🍀 Clover Pit</div></div>
+                <div class="description-overlay">Try your luck in the depths. ✨</div>
             </a>
 
             <a href="crazy-chicken-game.html" class="game-card" data-cat="extra">
@@ -268,6 +279,10 @@
             glow.style.top = e.clientY + 'px';
         });
 
+        function changeGlow(color) {
+            glow.style.background = `radial-gradient(circle, ${color} 0%, transparent 70%)`;
+        }
+
         function openVault() {
             const welcome = document.getElementById('welcome-screen');
             welcome.style.transform = 'scale(0.5) rotate(-10deg)';
@@ -298,10 +313,10 @@
             });
         }
 
-        function filterGames(category) {
+        function filterGames(category, btn) {
             // Update Buttons
-            document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
             const cards = document.querySelectorAll('.game-card');
             cards.forEach(card => {
