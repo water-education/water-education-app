@@ -3,10 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
     <title>UNDERTALE</title>
     
     <link rel="icon" type="image/x-icon" href="https://undertale.win/play/fav.ico">
@@ -14,15 +10,17 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
-    <script defer src="./UNDERTALE_files/v8c78df7c7c0f484497ecbca7046644da1771523124516"></script>
-    
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VW8CMPRWYS"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-VW8CMPRWYS');
-    </script>
+    <style>
+        body { background-color: #000; color: #fff; margin: 0; overflow: hidden; font-family: sans-serif; }
+        #game-container { position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        canvas { border: 0 none; background-color: #000; width: 100%; height: auto; max-width: 640px; image-rendering: pixelated; }
+        .loading { position: absolute; text-align: center; z-index: 10; }
+        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid #fff; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #output-container { position: fixed; bottom: 10px; left: 10px; z-index: 20; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; border: 2px solid #333; }
+        .output-button { background: #222; color: white; border: 1px solid #444; padding: 6px 12px; cursor: pointer; margin: 2px; font-size: 11px; text-transform: uppercase; font-weight: bold; }
+        .output-button:hover { background: #444; border-color: #888; }
+    </style>
 </head>
 
 <body oncontextmenu="return false;">
@@ -30,164 +28,61 @@
     <div id="game-container">
         <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
         
-        <div class="loading">
-            <div class="spinner" id="spinner"></div>
-            <noscript class="nsmessage">This requires JavaScript and WebAssembly to be enabled in your browser.</noscript>
-            <div class="emscripten" id="status">Loading...</div>
-            <progress value="0" max="100" id="progress" hidden="1"></progress>
-        </div>
-
-        <div id="mobile-controls">
-            <div id="joystick-zone"></div>
-            <div id="button-zone">
-                <img class="action-button" id="button-c" alt="C Button">
-                <img class="action-button" id="button-x" alt="X Button">
-                <img class="action-button" id="button-z" alt="Z Button">
-                <div id="dpad-container"></div>
-            </div>
-        </div>
-
-        <div class="output-container" id="output-container">
-            <div id="mobile-buttons" style="display:none;">
-                <button class="output-button" onclick="window.enterPositionMode()">Position Controls?</button>
-                <button class="output-button" onclick="toggleDpadMode()">Toggle D-Pad / Joystick!</button>
-            </div>
-            <button class="output-button" id="fullscreen" onclick="toggleFullscreen()">Toggle Fullscreen?</button>
-            <button class="output-button" onclick="toggleConsole()">Toggle Console!</button>
-            <button class="output-button" id="stats-button" onclick="toggleFPS()">Toggle FPS Counter!</button>
-            <button class="output-button" onclick="window.SAVEManager.openSAVEManager()">SAVE Manager!</button>
-            <button class="output-button" onclick="toggleWASD(this)">Mirror WASD to Arrows!</button>
-            <input id="colorpicker" type="color" onchange="changecolor(this)">
-            <textarea id="output" style="display:none;"></textarea>
-        </div>
-
-        <button id="closeUIButton" onclick="hideUI()">×</button>
-        
-        <div id="message-container">
-            <div id="messages"></div>
+        <div class="loading" id="loading-ui">
+            <div class="spinner"></div>
+            <div id="status">Loading Soul...</div>
         </div>
     </div>
 
-    <div id="customMessageBox" class="custom-message-box" style="display:none;">
-        <div class="custom-message-box-content">
-            <p id="messageBoxText"></p>
-            <button id="messageBoxConfirmBtn">OK</button>
-        </div>
-    </div>
-
-    <div id="saveManagerModal" class="save-manager-modal" style="display:none;">
-        <div class="save-manager-content">
-            <span class="close-button" onclick="window.SAVEManager.closeSAVEManager()">×</span>
-            <div class="save-manager-content2">
-                <span class="minimize-button" onclick="window.SAVEManager.closeSMnoreload()">‐</span>
-                <h2>SAVE File Manager!</h2>
-                <button class="output-button" onclick="toggleclear_site_cache()">Wipe all SAVEs?</button>
-                <button id="exportAllBtn" class="output-button" onclick="SAVEManager.exportAllToZip()">Export all to ZIP?</button>
-                <h3>Current SAVE Files:</h3>
-                <div id="saveFileList" class="save-file-list"></div>
-                <div class="file-upload-section">
-                    <h3>Import Save Files?</h3>
-                    <input type="file" id="uploadFileInput" multiple>
-                    <input type="text" id="uploadFileNameInput" placeholder="Filename (e.g. file0)">
-                    <button onclick="SAVEManager.handleUpload()">Select File(s)!</button>
-                </div>
-            </div>
-        </div>
+    <div class="output-container" id="output-container">
+        <button class="output-button" onclick="toggleFullscreen()">Fullscreen</button>
+        <button class="output-button" onclick="toggleFPS()">FPS Counter</button>
+        <button class="output-button" onclick="toggleWASD(this)">WASD: OFF</button>
+        <button class="output-button" onclick="window.location.reload()">Restart</button>
+        <input id="colorpicker" type="color" onchange="document.body.style.backgroundColor = this.value" style="vertical-align: middle;">
     </div>
 
     <script>
-        // --- 1. KEY MIRRORING (WASD & UT KEYS) ---
-        (function() {
-            const mapping = { 
-                "w": "ArrowUp", "W": "ArrowUp",
-                "a": "ArrowLeft", "A": "ArrowLeft",
-                "s": "ArrowDown", "S": "ArrowDown",
-                "d": "ArrowRight", "D": "ArrowRight",
-                "Shift": "x", "Control": "c", "Meta": "c" 
-            };
-            const activeSynthetic = new Map();
-            let mirroringEnabled = false;
-
-            window.toggleWASD = function(btn) {
-                mirroringEnabled = !mirroringEnabled;
-                btn.innerText = mirroringEnabled ? "Stop Mirroring WASD!" : "Mirror WASD to Arrows!";
-            };
-
-            function dispatchSynthetic(type, key) {
-                const ev = new KeyboardEvent(type, { key: key, bubbles: true });
-                document.dispatchEvent(ev);
-            }
-
-            window.addEventListener("keydown", (e) => {
-                if (mirroringEnabled && mapping[e.key]) {
-                    if (!activeSynthetic.has(e.key)) {
-                        activeSynthetic.set(e.key, mapping[e.key]);
-                        dispatchSynthetic("keydown", mapping[e.key]);
-                    }
-                    e.preventDefault();
-                }
-            }, true);
-
-            window.addEventListener("keyup", (e) => {
-                const targetKey = activeSynthetic.get(e.key);
-                if (targetKey) {
-                    dispatchSynthetic("keyup", targetKey);
-                    activeSynthetic.delete(e.key);
-                    e.preventDefault();
-                }
-            }, true);
-        })();
-
-        // --- 2. UI & UTILITY FUNCTIONS ---
-        window.hideUI = function() {
-            const container = document.getElementById('output-container');
-            container.style.display = container.style.display === 'none' ? 'block' : 'none';
-        };
-
-        window.toggleConsole = function() {
-            const out = document.getElementById('output');
-            out.style.display = out.style.display === 'none' ? 'block' : 'none';
-        };
-
-        window.toggleFPS = function() {
-            // Emscripten specific: this usually toggles the internal stats
-            if (typeof window.showStat !== 'undefined') {
-                window.showStat = !window.showStat;
-            } else {
-                console.log("FPS engine not yet loaded.");
+        // --- ENGINE CONFIG (The piece that was missing) ---
+        var Module = {
+            preRun: [],
+            postRun: [],
+            canvas: document.getElementById('canvas'),
+            setStatus: function(text) {
+                document.getElementById('status').innerHTML = text;
+                if (!text) document.getElementById('loading-ui').style.display = 'none';
             }
         };
 
-        window.toggleFullscreen = function() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else if (document.exitFullscreen) {
-                document.exitFullscreen();
+        // --- BUTTON LOGIC ---
+        let mirroringEnabled = false;
+        const mapping = { "w": "ArrowUp", "a": "ArrowLeft", "s": "ArrowDown", "d": "ArrowRight" };
+
+        window.toggleWASD = function(btn) {
+            mirroringEnabled = !mirroringEnabled;
+            btn.innerText = mirroringEnabled ? "WASD: ON" : "WASD: OFF";
+            btn.style.color = mirroringEnabled ? "#ffff00" : "#fff";
+        };
+
+        window.addEventListener("keydown", (e) => {
+            if (mirroringEnabled && mapping[e.key.toLowerCase()]) {
+                document.dispatchEvent(new KeyboardEvent("keydown", { key: mapping[e.key.toLowerCase()], bubbles: true }));
             }
-        };
+        }, true);
 
-        window.changecolor = function(input) {
-            document.body.style.backgroundColor = input.value;
-        };
-
-        // --- 3. SAVE MANAGER ---
-        window.SAVEManager = {
-            openSAVEManager: () => document.getElementById('saveManagerModal').style.display = 'flex',
-            closeSAVEManager: () => {
-                document.getElementById('saveManagerModal').style.display = 'none';
-                window.location.reload();
-            },
-            closeSMnoreload: () => document.getElementById('saveManagerModal').style.display = 'none',
-            handleUpload: () => console.log("Importing file..."),
-            exportAllToZip: () => console.log("Exporting saves...")
-        };
-
-        // --- 4. MOBILE DETECTION ---
-        window.addEventListener('load', () => {
-            if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
-                document.getElementById('mobile-buttons').style.display = 'block';
+        window.addEventListener("keyup", (e) => {
+            if (mirroringEnabled && mapping[e.key.toLowerCase()]) {
+                document.dispatchEvent(new KeyboardEvent("keyup", { key: mapping[e.key.toLowerCase()], bubbles: true }));
             }
-        });
+        }, true);
+
+        function toggleFPS() { if (typeof showStat !== 'undefined') showStat = !showStat; }
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
     </script>
+
+    <script defer src="./UNDERTALE_files/v8c78df7c7c0f484497ecbca7046644da1771523124516"></script>
 </body>
 </html>
