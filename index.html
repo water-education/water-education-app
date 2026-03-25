@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE VAULT - Premium Edition</title>
+    <title>LA BÓVEDA - Edición Premium</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -27,6 +27,7 @@
             overflow-x: hidden;
         }
 
+        /* Efecto de resplandor del cursor */
         #cursor-glow {
             position: fixed;
             top: 0; left: 0;
@@ -39,7 +40,7 @@
             transition: background 0.5s ease;
         }
 
-        /* --- WELCOME SCREEN --- */
+        /* --- PANTALLA DE BIENVENIDA --- */
         #welcome-screen {
             text-align: center;
             transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -88,7 +89,7 @@
             box-shadow: 0 20px 40px rgba(168, 85, 247, 0.5);
         }
 
-        /* --- CATEGORY INTERFACE --- */
+        /* --- INTERFAZ DE CATEGORÍAS --- */
         #game-section {
             display: none; 
             opacity: 0;
@@ -127,7 +128,7 @@
             box-shadow: 0 10px 20px rgba(56, 189, 248, 0.4);
         }
 
-        /* --- GAME GRID --- */
+        /* --- CUADRÍCULA DE JUEGOS --- */
         .game-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
@@ -184,16 +185,16 @@
     <div id="cursor-glow"></div>
 
     <div id="welcome-screen">
-        <h1>THE VAULT</h1>
-        <p style="font-size: 1.2rem; color: #94a3b8; margin-top: 15px; font-weight: 700;">PREMIUM ACCESS GRANTED</p>
-        <button class="enter-btn" onclick="openVault()">LAUNCH SYSTEM</button>
+        <h1>LA BÓVEDA</h1>
+        <p style="font-size: 1.2rem; color: #94a3b8; margin-top: 15px; font-weight: 700;">ACCESO PREMIUM CONCEDIDO</p>
+        <button class="enter-btn" onclick="openVault()">INICIAR SISTEMA</button>
     </div>
 
     <div id="game-section">
         <div class="category-bar">
-            <button class="cat-btn active" onclick="filterGames('all', this)">ALL GAMES</button>
-            <button class="cat-btn" onclick="filterGames('platformer', this)">PLATFORMERS</button>
-            <button class="cat-btn" onclick="filterGames('action', this)">ACTION</button>
+            <button class="cat-btn active" onclick="filterGames('all', this)">TODOS</button>
+            <button class="cat-btn" onclick="filterGames('platformer', this)">PLATAFORMAS</button>
+            <button class="cat-btn" onclick="filterGames('action', this)">ACCIÓN</button>
             <button class="cat-btn" onclick="filterGames('extra', this)">EXTRAS</button>
         </div>
         
@@ -201,81 +202,79 @@
             <a href="celeste-game.html" class="game-card" data-cat="platformer">
                 <img src="celeste-thumb.jpeg" class="game-img" />
                 <div class="game-info"><div class="game-title">🏔️ Celeste Classic</div></div>
-                <div class="description-overlay">CLIMB THE MOUNTAIN! 🍓</div>
+                <div class="description-overlay">¡ESCALA LA MONTAÑA! 🍓</div>
             </a>
 
             <a href="Meatboy.html" class="game-card" data-cat="platformer">
                 <img src="meat.jpeg" class="game-img" />
                 <div class="game-info"><div class="game-title">🥩 Super Meat Boy</div></div>
-                <div class="description-overlay">Precision platforming at its bloodiest. ⚙️</div>
+                <div class="description-overlay">Plataformas de precisión sangrienta. ⚙️</div>
             </a>
 
             <a href="buckshot-roulette-game.html" class="game-card" data-cat="action">
                 <img src="buckshot.jpeg" class="game-img" />
                 <div class="game-info"><div class="game-title">🔫 Buckshot Roulette</div></div>
-                <div class="description-overlay">A high-stakes gamble for your soul. 💀</div>
+                <div class="description-overlay">Apuesta tu alma en un juego mortal. 💀</div>
             </a>
 
             <a href="cuphead-game.html" class="game-card" data-cat="action">
                 <img src="cuphead.png" class="game-img" />
                 <div class="game-info"><div class="game-title">☕ Cuphead</div></div>
-                <div class="description-overlay">Don't deal with the Devil. 😈</div>
+                <div class="description-overlay">No hagas tratos con el Diablo. 😈</div>
             </a>
 
             <a href="hollow-knight.html" class="game-card" data-cat="action">
                 <img src="hollow.jpg" class="game-img" />
                 <div class="game-info"><div class="game-title">⚔️ Hollow Knight</div></div>
-                <div class="description-overlay">Explore the depths of Hallownest. 🐜</div>
+                <div class="description-overlay">Explora las profundidades de Hallownest. 🐜</div>
             </a>
 
             <a href="isaac.html" class="game-card" data-cat="action">
                 <img src="350.png" class="game-img" />
                 <div class="game-info"><div class="game-title">💧 The Binding of Isaac</div></div>
-                <div class="description-overlay">Roguelike tears and basement fears. 😭</div>
+                <div class="description-overlay">Lágrimas y miedos en el sótano. 😭</div>
             </a>
 
             <a href="10minutes.html" class="game-card" data-cat="action">
                 <img src="430.png" class="game-img" />
                 <div class="game-info"><div class="game-title">🌑 10 Mins Till Dawn</div></div>
-                <div class="description-overlay">Survive the night, one bullet at a time. 🕯️</div>
+                <div class="description-overlay">Sobrevive a la noche, bala a bala. 🕯️</div>
             </a>
 
             <a href="alien-hominid.html" class="game-card" data-cat="action" onmouseover="changeGlow('rgba(250, 204, 21, 0.25)')" onmouseout="changeGlow('rgba(168, 85, 247, 0.15)')">
-    <img src="304.png" class="game-img" />
-    <div class="game-info">
-        <div class="game-title">👽 Alien Hominid</div>
-    </div>
-    <div class="description-overlay">Run, gun, and chomp some heads! 🛸</div>
-</a>
-            
+                <img src="304.png" class="game-img" />
+                <div class="game-info"><div class="game-title">👽 Alien Hominid</div></div>
+                <div class="description-overlay">¡Dispara y muerde cabezas! 🛸</div>
+            </a>
+
             <a href="clover-pit.html" class="game-card" data-cat="extra" onmouseover="changeGlow('#4ade80')" onmouseout="changeGlow('rgba(168, 85, 247, 0.15)')">
                 <img src="716.png" class="game-img" />
                 <div class="game-info"><div class="game-title">🍀 Clover Pit</div></div>
-                <div class="description-overlay">Try your luck in the depths. ✨</div>
+                <div class="description-overlay">Prueba tu suerte en el abismo. ✨</div>
             </a>
 
             <a href="crazy-chicken-game.html" class="game-card" data-cat="extra">
                 <img src="crazy.jpeg" class="game-img" />
                 <div class="game-info"><div class="game-title">🐔 Crazy Chicken 3D</div></div>
-                <div class="description-overlay">Absolute poultry chaos. 🥚</div>
+                <div class="description-overlay">Caos absoluto de aves. 🥚</div>
             </a>
 
             <a href="Soundboard.html" class="game-card" data-cat="extra">
                 <img src="button.jpg" class="game-img" />
                 <div class="game-info"><div class="game-title">🔊 Soundboard</div></div>
-                <div class="description-overlay">Spam the memes. 📢</div>
+                <div class="description-overlay">Envía los memes a tope. 📢</div>
             </a>
 
             <a href="bounce.html" class="game-card" data-cat="extra">
                 <img src="437.png" class="game-img" />
                 <div class="game-info"><div class="game-title">🐧 Bouncemasters</div></div>
-                <div class="description-overlay">Launch that penguin to the moon! 🚀</div>
+                <div class="description-overlay">¡Lanza al pingüino a la luna! 🚀</div>
             </a>
 
             <a href="cookie.html" class="game-card" data-cat="extra">
                 <img src="82.png" class="game-img" />
                 <div class="game-info"><div class="game-title">🍪 Cookie Clicker</div></div>
-                <div class="description-overlay">The cookies must flow. 🖱️</div>
+                <div class="description-overlay">Las galletas deben fluir. 🖱️</div>
             </a>
         </div>
     </div>
@@ -314,7 +313,7 @@
             cards.forEach((card) => {
                 if(card.style.display !== 'none') {
                     card.style.animation = 'none';
-                    card.offsetHeight; /* trigger reflow */
+                    card.offsetHeight; /* disparar reflujo */
                     card.style.animation = `cardPop 0.7s var(--bounce) ${visibleIndex * 0.08}s forwards`;
                     visibleIndex++;
                 }
@@ -322,7 +321,6 @@
         }
 
         function filterGames(category, btn) {
-            // Update Buttons
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
