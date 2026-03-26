@@ -69,128 +69,205 @@
   border: none;
   display: block;
 }
+
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #231F20;
+  z-index: 10000;
+}
+#loading-text {
+  color: white;
+  font-size: 48px;
+  font-family: cursive;
+  text-align: center;
+  margin-bottom: 20px;
+}
+#loading-bar-outer {
+  width: 60%;
+  max-width: 600px;
+  height: 24px;
+  background: #444;
+  border-radius: 12px;
+  overflow: hidden;
+}
+#loading-bar-inner {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71);
+  border-radius: 12px;
+  transition: width 0.3s ease;
+}
+#loading-detail {
+  color: #aaa;
+  font-size: 14px;
+  font-family: monospace;
+  margin-top: 10px;
+}
 </style>
 </head>
 
 <body>
-    <div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;"> LOADING... </div>
+    <div id="loading-overlay">
+        <div id="loading-text">LOADING...</div>
+        <div id="loading-bar-outer"><div id="loading-bar-inner"></div></div>
+        <div id="loading-detail"></div>
+    </div>
     <div id="unityContainer"></div>
     <script src="Build/UnityLoader.js"></script>
     <script>
         var loadingText = document.querySelector("#loading-text");
-    
-        let totalBytes = 0;
+        var loadingBar = document.querySelector("#loading-bar-inner");
+        var loadingDetail = document.querySelector("#loading-detail");
+        var loadingOverlay = document.querySelector("#loading-overlay");
+
+        const TOTAL_MB = 2127.52;
         let loadedBytes = 0;
-    
-        async function getSize(url) {
-            try {
-                const res = await fetch(url, { method: "HEAD" });
-                return parseInt(res.headers.get("Content-Length") || "0", 10);
-            } catch {
-                return 0;
+
+        function updateProgress(extraInfo) {
+            let mbDone = (loadedBytes / (1024 * 1024)).toFixed(1);
+            let pct = Math.min(100, (loadedBytes / (TOTAL_MB * 1024 * 1024)) * 100).toFixed(1);
+            loadingText.textContent = "LOADING... " + pct + "%";
+            loadingBar.style.width = pct + "%";
+            loadingDetail.textContent = mbDone + " MB / " + TOTAL_MB + " MB" + (extraInfo ? " — " + extraInfo : "");
+        }
+
+        // Fetch a single part with retry logic
+        async function fetchPart(url, retries) {
+            retries = retries || 3;
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error("HTTP " + response.status);
+                    const reader = response.body.getReader();
+                    var chunks = [];
+
+                    while (true) {
+                        var result = await reader.read();
+                        if (result.done) break;
+                        loadedBytes += result.value.length;
+                        chunks.push(result.value);
+                        updateProgress("Downloading...");
+                    }
+
+                    // Build a Blob from chunks directly (no intermediate Uint8Array copy)
+                    return new Blob(chunks);
+                } catch (err) {
+                    console.warn("Fetch attempt " + attempt + " failed for " + url + ": " + err.message);
+                    if (attempt === retries) throw err;
+                    // Wait before retry (exponential backoff)
+                    await new Promise(function(r) { setTimeout(r, 1000 * attempt); });
+                }
             }
         }
-    
-        async function fetchWithProgress(url) {
-            const response = await fetch(url);
-            const reader = response.body.getReader();
-            let chunks = [];
-            let received = 0;
-    
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                received += value.length;
-                loadedBytes += value.length;
-                chunks.push(value);
-    
-                let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
-                let mbTotal = '2127.52';
-                loadingText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
+
+        // Download parts ONE AT A TIME and merge into a single Blob URL
+        // This avoids holding all raw ArrayBuffers in memory simultaneously
+        async function mergeFilesSequentially(fileParts, label) {
+            var blobs = [];
+            for (var i = 0; i < fileParts.length; i++) {
+                updateProgress(label + " part " + (i + 1) + "/" + fileParts.length);
+                var blob = await fetchPart(fileParts[i]);
+                blobs.push(blob);
+
+                // Yield to the browser event loop every few parts so the page stays responsive
+                if (i % 5 === 4) {
+                    await new Promise(function(r) { setTimeout(r, 0); });
+                }
             }
-    
-            let fullBuffer = new Uint8Array(received);
-            let offset = 0;
-            for (let chunk of chunks) {
-                fullBuffer.set(chunk, offset);
-                offset += chunk.length;
-            }
-            return fullBuffer.buffer;
+            var merged = new Blob(blobs);
+            // Release references to individual blobs
+            blobs = null;
+            return URL.createObjectURL(merged);
         }
-    
-        async function mergeFiles(fileParts) {
-            const buffers = await Promise.all(fileParts.map(part => fetchWithProgress(part)));
-            const mergedBlob = new Blob(buffers);
-            return URL.createObjectURL(mergedBlob);
-        }
-    
+
         function getParts(file, start, end) {
-            let parts = [];
-            for (let i = start; i <= end; i++) {
+            var parts = [];
+            for (var i = start; i <= end; i++) {
                 parts.push(file + ".part" + i);
             }
             return parts;
         }
-    
+
         function resizeUnityContainer() {
             var container = document.getElementById("unityContainer");
             container.style.width = window.innerWidth + "px";
             container.style.height = window.innerHeight + "px";
         }
-    
-        (async () => {
-            const allParts = [
-                ...getParts("Build/Build.asm.code.unityweb", 1, 3),
-                ...getParts("Build/Build.data.unityweb", 1, 102),
-                ...getParts("Build/Build.wasm.code.unityweb", 1, 2),
-            ];
-    
-            const sizes = await Promise.all(allParts.map(getSize));
-            totalBytes = sizes.reduce((a, b) => a + b, 0);
-    
-            const [asmurl, dataUrl, wasmurl] = await Promise.all([
-                mergeFiles(getParts("Build/Build.asm.code.unityweb", 1, 3)),
-                mergeFiles(getParts("Build/Build.data.unityweb", 1, 102)),
-                mergeFiles(getParts("Build/Build.wasm.code.unityweb", 1, 2)),
-            ]);
-    
-            const json = {
-                "companyName": "SpanishFreddy",
-                "productName": "Cuphead",
-                "dataUrl": dataUrl,
-                "wasmCodeUrl": wasmurl,
-                "wasmFrameworkUrl": "Build.wasm.framework.unityweb",
-                "asmCodeUrl": asmurl,
-                "asmMemoryUrl": "Build.asm.memory.unityweb",
-                "asmFrameworkUrl": "Build.asm.framework.unityweb",
-                "TOTAL_MEMORY": 100000000,
-                "graphicsAPI": ["WebGL 2.0"],
-                "webglContextAttributes": { "preserveDrawingBuffer": false },
-                "splashScreenStyle": "Dark",
-                "backgroundColor": "#231F20"
-            };
-    
-            let blob = new Blob([JSON.stringify(json)], { type: "application/json" });
-            let blobUrl = URL.createObjectURL(blob);
-            window.addEventListener("resize", resizeUnityContainer);
-    
-            UnityLoader.instantiate("unityContainer", json, {
-                url: blobUrl,
-                Module: {
-                    onRuntimeInitialized: function () {
-                        resizeUnityContainer();
-                        document.querySelector("#loading-text").remove();
+
+        (async function() {
+            try {
+                // Download and merge ONE group at a time (not all 3 simultaneously)
+                // This keeps peak memory much lower
+
+                updateProgress("ASM code");
+                var asmUrl = await mergeFilesSequentially(
+                    getParts("Build/Build.asm.code.unityweb", 1, 3),
+                    "ASM code"
+                );
+
+                updateProgress("WASM code");
+                var wasmUrl = await mergeFilesSequentially(
+                    getParts("Build/Build.wasm.code.unityweb", 1, 2),
+                    "WASM code"
+                );
+
+                updateProgress("Game data");
+                var dataUrl = await mergeFilesSequentially(
+                    getParts("Build/Build.data.unityweb", 1, 102),
+                    "Game data"
+                );
+
+                updateProgress("Starting game engine...");
+
+                var json = {
+                    "companyName": "SpanishFreddy",
+                    "productName": "Cuphead",
+                    "dataUrl": dataUrl,
+                    "wasmCodeUrl": wasmUrl,
+                    "wasmFrameworkUrl": "Build.wasm.framework.unityweb",
+                    "asmCodeUrl": asmUrl,
+                    "asmMemoryUrl": "Build.asm.memory.unityweb",
+                    "asmFrameworkUrl": "Build.asm.framework.unityweb",
+                    "TOTAL_MEMORY": 2147483648,
+                    "graphicsAPI": ["WebGL 2.0"],
+                    "webglContextAttributes": { "preserveDrawingBuffer": false },
+                    "splashScreenStyle": "Dark",
+                    "backgroundColor": "#231F20"
+                };
+
+                var blob = new Blob([JSON.stringify(json)], { type: "application/json" });
+                var blobUrl = URL.createObjectURL(blob);
+                window.addEventListener("resize", resizeUnityContainer);
+
+                UnityLoader.instantiate("unityContainer", json, {
+                    url: blobUrl,
+                    Module: {
+                        onRuntimeInitialized: function () {
+                            resizeUnityContainer();
+                            loadingOverlay.remove();
+                        },
                     },
-                },
-            });
-    
-            function resizeCanvas() {
-                var container = document.getElementById("unityContainer");
-                container.style.width = window.innerWidth + "px";
-                container.style.height = window.innerHeight + "px";
-                setTimeout(resizeCanvas, 1000);
+                });
+
+                function resizeCanvas() {
+                    var container = document.getElementById("unityContainer");
+                    container.style.width = window.innerWidth + "px";
+                    container.style.height = window.innerHeight + "px";
+                    setTimeout(resizeCanvas, 1000);
+                }
+                resizeCanvas();
+
+            } catch (err) {
+                loadingText.textContent = "LOAD FAILED";
+                loadingText.style.color = "#e74c3c";
+                loadingDetail.textContent = err.message + " — Refresh to retry";
+                console.error("Cuphead loader error:", err);
             }
-            resizeCanvas();
         })();
     </script>
     
