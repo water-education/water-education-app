@@ -3,106 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LA BÓVEDA v2.0 | Deluxe Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Outfit:wght@300;400;900&display=swap" rel="stylesheet">
+    <title>LA BÓVEDA v1.5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #00ffcc;
-            --secondary: #ff00ff;
-            --accent: #ffcc00;
-            --danger: #ff4757;
-            --bg: #05070a;
-            --card-bg: rgba(30, 41, 59, 0.6);
+            --primary: #38bdf8;
+            --secondary: #a855f7;
+            --accent: #f43f5e;
+            --bg: #030712;
+            --card-bg: rgba(30, 41, 59, 0.7);
             --bounce: cubic-bezier(0.68, -0.6, 0.32, 1.6);
         }
-
-        * { cursor: default; }
 
         body { 
             font-family: 'Outfit', sans-serif; 
             background-color: var(--bg);
-            color: #fff; 
+            color: #f1f5f9; 
             margin: 0; 
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        /* --- MARCO NEÓN ELEGANTE --- */
-        body::before {
-            content: "";
+        #cursor-glow {
             position: fixed;
-            inset: 0;
-            border: 4px solid transparent;
-            background: linear-gradient(var(--bg), var(--bg)) padding-box,
-                        linear-gradient(90deg, var(--primary), var(--secondary), var(--primary)) border-box;
-            background-size: 200% 100%;
-            animation: borderMove 4s linear infinite;
-            z-index: 9999;
+            top: 0; left: 0;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
             pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            transition: background 0.5s ease;
         }
 
-        @keyframes borderMove {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 200% 50%; }
-        }
-
-        /* --- PANTALLA DE BIENVENIDA --- */
         #welcome-screen {
-            position: relative;
             text-align: center;
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            max-width: 600px;
             padding: 60px;
-            background: rgba(15, 23, 42, 0.9);
+            background: var(--card-bg);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255,255,255,0.1);
             border-radius: 40px;
-            box-shadow: 0 0 80px rgba(0,0,0,0.9);
-            z-index: 100;
-            transition: 0.8s ease;
-            display: block; /* Aseguramos que se vea */
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
         }
 
         h1 {
-            font-family: 'Bungee', cursive;
-            font-size: clamp(2.5rem, 10vw, 6rem);
+            font-size: 5rem;
+            font-weight: 900;
             margin: 0;
-            background: linear-gradient(to bottom, #fff, var(--primary));
+            background: linear-gradient(to right, var(--primary), var(--secondary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            letter-spacing: -3px;
+            filter: drop-shadow(0 10px 20px rgba(56, 189, 248, 0.3));
         }
 
         .enter-btn {
-            background: transparent;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: 900;
-            letter-spacing: 3px;
-            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            border-radius: 20px;
             cursor: pointer;
-            transition: 0.3s;
+            transition: 0.4s var(--bounce);
+            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.3);
             margin-top: 30px;
         }
 
         .enter-btn:hover {
-            background: var(--primary);
-            color: #000;
-            box-shadow: 0 0 30px var(--primary);
-            transform: scale(1.05);
+            transform: scale(1.1) rotate(-3deg);
+            box-shadow: 0 20px 40px rgba(168, 85, 247, 0.5);
         }
 
-        /* --- SECCIÓN DE JUEGOS --- */
         #game-section {
-            display: none; /* Se activa con JS */
-            width: 90%;
-            max-width: 1400px;
-            padding: 40px 0;
+            display: none; 
             opacity: 0;
-            transition: opacity 0.5s ease;
+            width: 90%;
+            max-width: 1300px;
+            padding: 40px 20px;
+            text-align: center;
         }
 
         .category-bar {
@@ -111,20 +102,27 @@
             gap: 15px;
             margin-bottom: 40px;
             flex-wrap: wrap;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
         }
 
         .cat-btn {
-            background: rgba(255,255,255,0.05);
-            color: #fff;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 10px 20px;
-            border-radius: 5px;
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 50px;
             cursor: pointer;
+            font-weight: 700;
+            transition: 0.3s var(--bounce);
         }
 
-        .cat-btn.active {
-            border-color: var(--primary);
-            background: rgba(0, 255, 204, 0.2);
+        .cat-btn:hover, .cat-btn.active {
+            background: var(--primary);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(56, 189, 248, 0.4);
         }
 
         .game-grid { 
@@ -135,167 +133,269 @@
 
         .game-card { 
             background: var(--card-bg); 
-            border-radius: 15px; 
+            border-radius: 24px; 
             overflow: hidden; 
-            text-decoration: none; 
-            position: relative;
+            position: relative; 
+            transition: 0.6s var(--bounce); 
             border: 1px solid rgba(255,255,255,0.1);
-            transition: 0.4s var(--bounce);
+            text-decoration: none; 
+            display: block; 
+            opacity: 0;
+            transform: translateY(40px) scale(0.9);
         }
 
         .game-card:hover { 
-            transform: translateY(-10px);
+            transform: translateY(-15px) scale(1.05) rotate(2deg);
             border-color: var(--primary);
+            z-index: 10;
         }
 
-        .game-img { width: 100%; height: 180px; object-fit: cover; }
+        .game-img { width: 100%; height: 180px; object-fit: cover; transition: 0.5s ease; }
+        .game-card:hover .game-img { transform: scale(1.15); }
 
-        .game-info { padding: 15px; background: #0f172a; text-align: center; font-weight: bold; color: white;}
+        .game-info { padding: 20px; text-align: left; background: #0f172a; }
+        .game-title { font-weight: 900; font-size: 1.2rem; color: #fff; }
 
         .description-overlay {
             position: absolute; inset: 0;
-            background: var(--primary);
-            color: #000;
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.95), rgba(168, 85, 247, 0.95));
+            color: #fff;
             display: flex; align-items: center; justify-content: center;
-            padding: 20px; opacity: 0;
-            transition: 0.3s;
-            font-weight: 900; text-align: center;
+            padding: 25px; opacity: 0;
+            transition: 0.4s var(--bounce);
+            font-weight: 800; text-align: center;
+            transform: scale(0.8) translateY(20px);
         }
 
-        .game-card:hover .description-overlay { opacity: 1; }
+        .game-card:hover .description-overlay { opacity: 1; transform: scale(1) translateY(0); }
 
-        /* Alerta Celeste */
+        .show-content { display: block !important; opacity: 1 !important; }
+
+        @keyframes cardPop {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* --- WARNING MODAL STYLES --- */
         #warning-modal {
-            display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.9);
-            z-index: 10001; align-items: center; justify-content: center;
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(15px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-content {
-            background: #111; padding: 40px; border-radius: 20px;
-            border: 2px solid var(--danger); text-align: center; max-width: 400px;
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 30px;
+            border: 2px solid var(--accent);
+            text-align: center;
+            max-width: 450px;
+            box-shadow: 0 0 50px rgba(244, 63, 94, 0.4);
+            animation: modalIn 0.5s var(--bounce);
         }
+
+        @keyframes modalIn {
+            from { transform: scale(0.5) translateY(100px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .kb-shortcut {
+            background: #334155;
+            padding: 5px 12px;
+            border-radius: 8px;
+            border-bottom: 4px solid #000;
+            font-family: monospace;
+            color: var(--primary);
+        }
+
+        .modal-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .modal-btn:hover { transform: scale(1.1); filter: brightness(1.2); }
+
+        /* EL BOTÓN TROLL */
+        .troll-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(45deg, #ffd700, #ff8c00);
+            color: #000;
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-weight: 900;
+            font-size: 1.1rem;
+            cursor: pointer;
+            z-index: 9999;
+            border: 3px solid #fff;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            transition: 0.1s;
+        }
+
     </style>
 </head>
 <body>
 
+    <div id="cursor-glow"></div>
+
     <div id="warning-modal">
         <div class="modal-content">
-            <h2 style="color: var(--danger);">⚠️ CRASH WARNING</h2>
-            <p>Celeste consume mucha RAM. Presiona:</p>
-            <h3 style="background: #222; padding: 10px;">CTRL + SHIFT + R</h3>
-            <p>mientras carga el juego.</p>
-            <button class="enter-btn" onclick="proceedToGame()">ENTENDIDO</button>
+            <h2 style="color: var(--accent); font-size: 2rem;">⚠️ ¡ALERTA DE CRASH!</h2>
+            <p style="font-size: 1.1rem; line-height: 1.6;">
+                Celeste consume mucha RAM. Para evitar que tu Chromebook se reinicie, presiona:
+                <br><br>
+                <span class="kb-shortcut">CTRL</span> + <span class="kb-shortcut">SHIFT</span> + <span class="kb-shortcut">R</span>
+                <br><br>
+                ...cuando estés en la pantalla de carga del juego.
+            </p>
+            <button class="modal-btn" onclick="proceedToGame()">ENTENDIDO, VAMOS</button>
         </div>
     </div>
 
+    <div class="troll-btn" onmouseover="trollMe(this)" onclick="gotcha()">🤑 FREE ROBUX</div>
+
     <div id="welcome-screen">
-        <div style="color: var(--primary); letter-spacing: 5px;">ACCESS GRANTED</div>
         <h1>LA BÓVEDA</h1>
-        <p style="opacity: 0.6;">SISTEMA PREMIUM v2.0</p>
-        <button class="enter-btn" onclick="openVault()">INICIAR SESIÓN</button>
+        <p style="font-size: 1.2rem; color: #94a3b8; margin-top: 15px; font-weight: 700;">ACCESO PREMIUM V1.5 (100% real no fake)</p>
+        <button class="enter-btn" onclick="openVault()" onmouseover="this.innerText='¿SEGURO?'" onmouseout="this.innerText='INICIAR SISTEMA'">INICIAR SISTEMA</button>
     </div>
 
     <div id="game-section">
         <div class="category-bar">
             <button class="cat-btn active" onclick="filterGames('all', this)">TODOS</button>
-            <button class="cat-btn" onclick="filterGames('platformer', this)">SALTOS</button>
-            <button class="cat-btn" onclick="filterGames('action', this)">ACCIÓN</button>
-            <button class="cat-btn" onclick="filterGames('extra', this)">RANDOM</button>
+            <button class="cat-btn" onclick="filterGames('platformer', this)">SALTOS Y SUFRIMIENTO</button>
+            <button class="cat-btn" onclick="filterGames('action', this)">PELEAS</button>
+            <button class="cat-btn" onclick="filterGames('extra', this)">COSAS RANDOM</button>
         </div>
         
-        <div class="game-grid">
+        <div class="game-grid" id="main-grid">
             <a href="celeste-game.html" class="game-card" data-cat="platformer" onclick="return checkCeleste(event, this.href)">
                 <img src="celeste-thumb.jpeg" class="game-img" />
-                <div class="game-info">🏔️ Celeste Classic</div>
-                <div class="description-overlay">Cuidado con la RAM. 🍓</div>
+                <div class="game-info"><div class="game-title">🏔️ Celeste Classic</div></div>
+                <div class="description-overlay">Te vas a caer mucho. 🍓</div>
             </a>
 
             <a href="Meatboy.html" class="game-card" data-cat="platformer">
                 <img src="meat.jpeg" class="game-img" />
-                <div class="game-info">🥩 Super Meat Boy</div>
-                <div class="description-overlay">Pura habilidad. ⚙️</div>
+                <div class="game-info"><div class="game-title">🥩 Super Meat Boy</div></div>
+                <div class="description-overlay">Básicamente una licuadora. ⚙️</div>
             </a>
 
             <a href="UNDERTALE.html" class="game-card" data-cat="action">
                 <img src="under.png" class="game-img" />
-                <div class="game-info">💀 Undertale</div>
-                <div class="description-overlay">No mates a nadie... o sí. 🦴</div>
+                <div class="game-info"><div class="game-title">💀 Undertale</div></div>
+                <div class="description-overlay">Te juzgarán por tus pecados. ❤️</div>
             </a>
 
             <a href="isaac.html" class="game-card" data-cat="action">
                 <img src="350.png" class="game-img" />
-                <div class="game-info">💧 The Binding of Isaac</div>
-                <div class="description-overlay">Llantos mortales. 😭</div>
+                <div class="game-info"><div class="game-title">💧 The Binding of Isaac</div></div>
+                <div class="description-overlay">Llorar soluciona todo. 😭</div>
             </a>
 
             <a href="buckshot-roulette-game.html" class="game-card" data-cat="action">
                 <img src="buckshot.jpeg" class="game-img" />
-                <div class="game-info">🔫 Buckshot Roulette</div>
-                <div class="description-overlay">Suerte con el repartidor. 💀</div>
+                <div class="game-info"><div class="game-title">🔫 Buckshot Roulette</div></div>
+                <div class="description-overlay">Todo al rojo. 💀</div>
             </a>
 
             <a href="cuphead-game.html" class="game-card" data-cat="action">
                 <img src="cuphead.png" class="game-img" />
-                <div class="game-info">☕ Cuphead</div>
-                <div class="description-overlay">Don't deal with the Devil. 😈</div>
+                <div class="game-info"><div class="game-title">☕ Cuphead</div></div>
+                <div class="description-overlay">Puro estrés en HD. 😈</div>
             </a>
 
             <a href="hollow-knight.html" class="game-card" data-cat="action">
                 <img src="hollow.jpg" class="game-img" />
-                <div class="game-info">⚔️ Hollow Knight</div>
-                <div class="description-overlay">Insectos y espadas. 🐜</div>
+                <div class="game-info"><div class="game-title">⚔️ Hollow Knight</div></div>
+                <div class="description-overlay">Insectos con espadas. 🐜</div>
+            </a>
+
+            <a href="10minutes.html" class="game-card" data-cat="action">
+                <img src="430.png" class="game-img" />
+                <div class="game-info"><div class="game-title">🌑 10 Mins Till Dawn</div></div>
+                <div class="description-overlay">Sobrevive, si puedes. 🕯️</div>
+            </a>
+
+            <a href="alien-hominid.html" class="game-card" data-cat="action">
+                <img src="304.png" class="game-img" />
+                <div class="game-info"><div class="game-title">👽 Alien Hominid</div></div>
+                <div class="description-overlay">Pew pew pew. 🛸</div>
+            </a>
+
+            <a href="crossy-road.html" class="game-card" data-cat="extra">
+                <img src="crossy.jpeg" class="game-img" />
+                <div class="game-info"><div class="game-title">🐔 Crossy Road</div></div>
+                <div class="description-overlay">Mira a ambos lados bro. 🚙</div>
+            </a>
+
+            <a href="clover-pit.html" class="game-card" data-cat="extra">
+                <img src="716.png" class="game-img" />
+                <div class="game-info"><div class="game-title">🍀 Clover Pit</div></div>
+                <div class="description-overlay">Suerte. ✨</div>
+            </a>
+
+            <a href="crazy-chicken-game.html" class="game-card" data-cat="extra">
+                <img src="crazy.jpeg" class="game-img" />
+                <div class="game-info"><div class="game-title">🐔 Crazy Chicken 3D</div></div>
+                <div class="description-overlay">Pollo táctico. 🥚</div>
+            </a>
+
+            <a href="Soundboard.html" class="game-card" data-cat="extra">
+                <img src="button.jpg" class="game-img" />
+                <div class="game-info"><div class="game-title">🔊 Soundboard</div></div>
+                <div class="description-overlay">Para spamear en Discord. 📢</div>
+            </a>
+
+            <a href="bounce.html" class="game-card" data-cat="extra">
+                <img src="437.png" class="game-img" />
+                <div class="game-info"><div class="game-title">🐧 Bouncemasters</div></div>
+                <div class="description-overlay">Pobre pingüino. 🚀</div>
+            </a>
+
+            <a href="cookie.html" class="game-card" data-cat="extra">
+                <img src="82.png" class="game-img" />
+                <div class="game-info"><div class="game-title">🍪 Cookie Clicker</div></div>
+                <div class="description-overlay">Rompe tu mouse. 🖱️</div>
             </a>
 
             <a href="minecraft.html" class="game-card" data-cat="extra">
                 <img src="182.png" class="game-img" />
-                <div class="game-info">Minecraft 1.12.2</div>
-                <div class="description-overlay">El clásico. 🧱</div>
+                <div class="game-info"><div class="game-title">Minecraft 1.12.2</div></div>
+                <div class="description-overlay">Nunca pasa de moda. 🧱</div>
             </a>
-            
+
             <a href="epstein.html" class="game-card" data-cat="action">
                 <img src="ep.png" class="game-img" />
-                <div class="game-info">Five nights at Epstein's</div>
-                <div class="description-overlay">Cursed. 🌚</div>
+                <div class="game-info"><div class="game-title">Five night's at Epstein's</div></div>
+                <div class="description-overlay">Sin comentarios. 🌚</div>
             </a>
         </div>
     </div>
 
     <script>
+        const glow = document.getElementById('cursor-glow');
+        window.addEventListener('mousemove', (e) => {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
+        });
+
+        // --- SISTEMA DE ADVERTENCIA PARA CELESTE ---
         let pendingUrl = "";
-
-        function openVault() {
-            // Animación de salida
-            document.getElementById('welcome-screen').style.opacity = '0';
-            document.getElementById('welcome-screen').style.transform = 'translateY(-20px)';
-            
-            setTimeout(() => {
-                document.getElementById('welcome-screen').style.display = 'none';
-                const section = document.getElementById('game-section');
-                section.style.display = 'block';
-                setTimeout(() => {
-                    section.style.opacity = '1';
-                    // Re-centrar el contenido
-                    document.body.style.justifyContent = 'flex-start';
-                    document.body.style.paddingTop = '50px';
-                }, 50);
-            }, 500);
-        }
-
-        function filterGames(category, btn) {
-            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.game-card').forEach(card => {
-                if (category === 'all' || card.dataset.cat === category) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-
         function checkCeleste(e, url) {
-            e.preventDefault();
+            e.preventDefault(); // Detiene el viaje inmediato a la página
             pendingUrl = url;
             document.getElementById('warning-modal').style.display = 'flex';
             return false;
@@ -303,6 +403,68 @@
 
         function proceedToGame() {
             window.location.href = pendingUrl;
+        }
+
+        function openVault() {
+            const welcome = document.getElementById('welcome-screen');
+            welcome.style.transform = 'scale(0.5) rotate(-10deg)';
+            welcome.style.opacity = '0';
+
+            setTimeout(() => {
+                welcome.style.display = 'none';
+                const section = document.getElementById('game-section');
+                section.classList.add('show-content');
+                animateCards();
+                document.body.style.alignItems = 'flex-start';
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }, 600);
+        }
+
+        function animateCards() {
+            const cards = document.querySelectorAll('.game-card');
+            let visibleIndex = 0;
+            cards.forEach((card) => {
+                if(card.style.display !== 'none') {
+                    card.style.animation = 'none';
+                    card.offsetHeight;
+                    card.style.animation = `cardPop 0.7s var(--bounce) ${visibleIndex * 0.08}s forwards`;
+                    visibleIndex++;
+                }
+            });
+        }
+
+        function filterGames(category, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const cards = document.querySelectorAll('.game-card');
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-cat') === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(40px) scale(0.9)';
+                }
+            });
+            animateCards();
+        }
+
+        function trollMe(btn) {
+            const audio = new Audio("https://www.myinstants.com/media/sounds/vine-boom.mp3");
+            audio.volume = 0.5;
+            audio.play().catch(e => {});
+
+            btn.style.position = 'fixed';
+            btn.style.top = Math.random() * 80 + 10 + "vh";
+            btn.style.left = Math.random() * 80 + 10 + "vw";
+            
+            const phrases = ["CASI", "MUY LENTO", "NICE TRY", "LMAO", "SIGUE INTENTANDO"];
+            btn.innerHTML = phrases[Math.floor(Math.random() * phrases.length)];
+        }
+
+        function gotcha() {
+            alert("¡Felicidades! Acabas de ganar 0 Robux. 📉");
         }
     </script>
 </body>
