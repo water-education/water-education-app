@@ -647,12 +647,14 @@
     <div class="ambient-blob blob-1"></div>
     <div class="ambient-blob blob-2"></div>
     <div class="ambient-blob blob-3"></div>
+    <!-- SPLASH -->
     <div id="splash-screen">
-        <div class="splash-logo"><span>Water Education</span></div>
+        <div class="splash-logo"><span>Water Educarion</span></div>
         <div class="splash-subtitle">Premium Game Vault</div>
         <div class="splash-loader"><div class="splash-loader-bar"></div></div>
         <button class="splash-enter" id="splash-enter-btn">Iniciar Sesión</button>
     </div>
+    <!-- BSOD (Troll) -->
     <div id="bsod">
         <div class="bsod-frown">:(</div>
         <div class="bsod-title">Your PC ran into a problem and needs to restart.</div>
@@ -664,6 +666,7 @@
         <div class="bsod-percent" id="bsod-percent">0% complete</div>
         <div class="bsod-small">Stop code: CRITICAL_BOVEDA_OVERFLOW<br>What failed: LaBovedaV2.sys</div>
     </div>
+    <!-- WARNING MODAL -->
     <div id="warning-modal">
         <div class="win-dialog">
             <span class="material-icons-round" style="font-size:48px; color: var(--yellow); margin-bottom: 16px;">warning</span>
@@ -672,7 +675,9 @@
             <button class="dialog-btn" onclick="proceedToGame()">Continuar</button>
         </div>
     </div>
+    <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
+    <!-- MAIN APP -->
     <div id="app">
         <header class="app-header">
             <div class="header-top">
@@ -694,10 +699,11 @@
         </header>
         <main class="content-area">
             <div class="section-label">
-                Biblioteca <span class="count" id="game-count">16 juegos</span>
+                Biblioteca <span class="count" id="game-count">17 juegos</span>
             </div>
             <div class="game-grid" id="game-grid"></div>
         </main>
+        <!-- Troll Button -->
         <div class="troll-btn-wrap" id="troll-wrap">
             <button class="troll-btn" id="troll-btn" onclick="startTroll()">
                 <div class="troll-icon">
@@ -710,6 +716,7 @@
                 <span class="notif-dot"></span>
             </button>
         </div>
+        <!-- Music Widget -->
         <div class="music-widget" id="music-widget">
             <div class="music-bars" id="music-bars">
                 <div class="music-bar" style="--h:8px"></div>
@@ -728,6 +735,7 @@
                 <button class="music-ctrl-btn" onclick="nextTrack()"><span class="material-icons-round">skip_next</span></button>
             </div>
         </div>
+        <!-- Taskbar -->
         <div class="taskbar">
             <button class="taskbar-btn active" title="Inicio" onclick="playClickSound()"><span class="material-icons-round">home</span></button>
             <button class="taskbar-btn" title="Explorador" onclick="playClickSound()"><span class="material-icons-round">folder</span></button>
@@ -751,12 +759,412 @@
             { title: "Undertale", emoji: "💀", img: "under.png", cat: "action", desc: "Te juzgarán por tus pecados. ❤️", href: "UNDERTALE.html" },
             { title: "The Binding of Isaac", emoji: "💧", img: "350.png", cat: "action", desc: "Llorar soluciona todo. 😭", href: "isaac.html" },
             { title: "Buckshot Roulette", emoji: "🔫", img: "buckshot.jpeg", cat: "action", desc: "Todo al rojo. 💀", href: "buckshot-roulette-game.html" },
+            { title: "Cuphead", emoji: "☕", img: "cuphead.png", cat: "action", desc: "Puro estrés en HD. 😈", href: "cuphead-game.html" },
             { title: "Hollow Knight", emoji: "⚔️", img: "hollow.jpg", cat: "action", desc: "Insectos con espadas. 🐜", href: "hollow-knight.html" },
             { title: "10 Mins Till Dawn", emoji: "🌑", img: "430.png", cat: "action", desc: "Sobrevive, si puedes. 🕯️", href: "10minutes.html" },
-            { title: "Alien Hominid", emoji: "👽", img: "304.png", cat: "action", desc: "Caos extraterrestre. 🔫", href: "alien.html" }
+            { title: "Alien Hominid", emoji: "👽", img: "304.png", cat: "action", desc: "Pew pew pew. 🛸", href: "alien-hominid.html" },
+            { title: "Crossy Road", emoji: "🐔", img: "crossy.jpeg", cat: "extra", desc: "Mira a ambos lados bro. 🚙", href: "crossy-road.html" },
+            { title: "Clover Pit", emoji: "🍀", img: "716.png", cat: "extra", desc: "Suerte. ✨", href: "clover-pit.html" },
+            { title: "Crazy Chicken 3D", emoji: "🐔", img: "crazy.jpeg", cat: "extra", desc: "Pollo táctico. 🥚", href: "crazy-chicken-game.html" },
+            { title: "Soundboard", emoji: "🔊", img: "button.jpg", cat: "extra", desc: "Para spamear en Discord. 📢", href: "Soundboard.html" },
+            { title: "Bouncemasters", emoji: "🐧", img: "437.png", cat: "extra", desc: "Pobre pingüino. 🚀", href: "bounce.html" },
+            { title: "Cookie Clicker", emoji: "🍪", img: "82.png", cat: "extra", desc: "Rompe tu mouse. 🖱️", href: "cookie.html" },
+            { title: "Minecraft 1.12.2", emoji: "⛏", img: "182.png", cat: "extra", desc: "Nunca pasa de moda. 🧱", href: "minecraft.html" },
+            { title: "Five nights at Epstein's", emoji: "👻", img: "ep.png", cat: "action", desc: "Sin comentarios. 🌚", href: "epstein.html" }
         ];
-        
-        // Ensure you include your existing JS functions here (renderGames, filterGames, etc.)
+        const catLabels = { platformer: "Plataformas", action: "Acción", extra: "Extras" };
+        let currentFilter = 'all';
+        // ========== SOUND SYSTEM (Web Audio API) ==========
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+        function ensureAudio() {
+            if (!audioCtx) audioCtx = new AudioCtx();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+        function playTone(freq, dur, type = 'sine', vol = 0.08) {
+            ensureAudio();
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(vol, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+            osc.connect(g);
+            g.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + dur);
+        }
+        function playClickSound() {
+            playTone(800, 0.08, 'sine', 0.06);
+            setTimeout(() => playTone(1200, 0.05, 'sine', 0.04), 30);
+        }
+        function playHoverSound() {
+            playTone(600, 0.05, 'sine', 0.03);
+        }
+        function playSuccessSound() {
+            [523, 659, 784].forEach((n, i) => setTimeout(() => playTone(n, 0.15, 'sine', 0.08), i * 100));
+        }
+        function playErrorSound() {
+            playTone(200, 0.3, 'square', 0.06);
+            setTimeout(() => playTone(150, 0.4, 'square', 0.06), 200);
+        }
+        function playWhoosh() {
+            ensureAudio();
+            const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.3, audioCtx.sampleRate);
+            const d = buf.getChannelData(0);
+            for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+            const src = audioCtx.createBufferSource();
+            const flt = audioCtx.createBiquadFilter();
+            const g = audioCtx.createGain();
+            src.buffer = buf;
+            flt.type = 'bandpass'; flt.frequency.value = 1000; flt.Q.value = 0.5;
+            g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            src.connect(flt); flt.connect(g); g.connect(audioCtx.destination);
+            src.start();
+        }
+        function playNotifSound() {
+            playTone(880, 0.1, 'sine', 0.07);
+            setTimeout(() => playTone(1100, 0.15, 'sine', 0.05), 80);
+        }
+        function playStartupSound() {
+            [392, 523, 659, 784, 1047].forEach((n, i) => setTimeout(() => playTone(n, 0.4, 'sine', 0.06), i * 120));
+        }
+        function playBSODSound() {
+            ensureAudio();
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 1.5);
+            g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+        }
+        function playDeleteSound() {
+            ensureAudio();
+            const now = audioCtx.currentTime;
+            // Descending notes = "deleting" feel
+            [784, 659, 523, 392, 261].forEach((f, i) => {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.type = 'triangle';
+                o.frequency.value = f;
+                g.gain.setValueAtTime(0.08, now + i * 0.12);
+                g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.2);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(now + i * 0.12); o.stop(now + i * 0.12 + 0.25);
+            });
+        }
+        function playGlitchSound() {
+            ensureAudio();
+            for (let i = 0; i < 5; i++) {
+                setTimeout(() => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.type = ['square', 'sawtooth'][Math.floor(Math.random() * 2)];
+                    o.frequency.value = 100 + Math.random() * 800;
+                    g.gain.setValueAtTime(0.04, audioCtx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.start(); o.stop(audioCtx.currentTime + 0.1);
+                }, i * 60);
+            }
+        }
+        function playRestoreSound() {
+            ensureAudio();
+            const now = audioCtx.currentTime;
+            [261, 329, 392, 523, 659, 784].forEach((f, i) => {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.type = 'sine';
+                o.frequency.value = f;
+                g.gain.setValueAtTime(0.06, now + i * 0.1);
+                g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.1 + 0.3);
+                o.connect(g); g.connect(audioCtx.destination);
+                o.start(now + i * 0.1); o.stop(now + i * 0.1 + 0.35);
+            });
+        }
+        // ========== BACKGROUND MUSIC ==========
+        let musicPlaying = true;
+        let musicGain;
+        let currentTrackIndex = 0;
+        let musicTimeout;
+        const tracks = [
+            { name: "Lofi Chill Beats", artist: "Ambient Vibes" },
+            { name: "Midnight Drive", artist: "Synth Wave" },
+            { name: "Pixel Dreams", artist: "Chiptune FM" },
+            { name: "Ocean Breeze", artist: "Nature Sounds" }
+        ];
+        function createMusic() {
+            ensureAudio();
+            musicGain = audioCtx.createGain();
+            musicGain.gain.value = 0.35;
+            musicGain.connect(audioCtx.destination);
+            musicLoop();
+        }
+        function musicLoop() {
+            if (!musicPlaying || !audioCtx) return;
+            const now = audioCtx.currentTime;
+            const chords = [
+                [261.63, 329.63, 392.00],
+                [293.66, 369.99, 440.00],
+                [349.23, 440.00, 523.25],
+                [392.00, 493.88, 587.33]
+            ];
+            const chord = chords[Math.floor(Math.random() * chords.length)];
+            chord.forEach(freq => {
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.type = 'sine'; o.frequency.value = freq;
+                g.gain.setValueAtTime(0, now);
+                g.gain.linearRampToValueAtTime(0.12, now + 0.5);
+                g.gain.linearRampToValueAtTime(0, now + 3);
+                o.connect(g); g.connect(musicGain);
+                o.start(now); o.stop(now + 3.5);
+            });
+            const melNotes = [523, 587, 659, 698, 784, 880];
+            const mel = melNotes[Math.floor(Math.random() * melNotes.length)];
+            const mo = audioCtx.createOscillator();
+            const mg = audioCtx.createGain();
+            mo.type = 'triangle'; mo.frequency.value = mel;
+            mg.gain.setValueAtTime(0, now + 0.5);
+            mg.gain.linearRampToValueAtTime(0.07, now + 1);
+            mg.gain.linearRampToValueAtTime(0, now + 2.5);
+            mo.connect(mg); mg.connect(musicGain);
+            mo.start(now + 0.5); mo.stop(now + 3);
+            musicTimeout = setTimeout(musicLoop, 3000);
+        }
+        function toggleMusic() {
+            musicPlaying = !musicPlaying;
+            const icon = document.getElementById('play-icon');
+            const bars = document.querySelectorAll('.music-bar');
+            if (musicPlaying) {
+                icon.textContent = 'pause';
+                bars.forEach(b => b.classList.remove('paused'));
+                musicLoop();
+            } else {
+                icon.textContent = 'play_arrow';
+                bars.forEach(b => b.classList.add('paused'));
+                clearTimeout(musicTimeout);
+            }
+            playClickSound();
+        }
+        function nextTrack() {
+            currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            updateTrackInfo();
+            playClickSound(); playWhoosh();
+        }
+        function prevTrack() {
+            currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+            updateTrackInfo();
+            playClickSound(); playWhoosh();
+        }
+        function updateTrackInfo() {
+            document.getElementById('music-title').textContent = tracks[currentTrackIndex].name;
+            document.getElementById('music-artist').textContent = tracks[currentTrackIndex].artist;
+        }
+        function changeVolume(val) {
+            document.getElementById('vol-label').textContent = val + '%';
+            if (musicGain) musicGain.gain.value = (val / 100) * 0.7;
+            const icon = document.getElementById('vol-icon');
+            icon.textContent = val == 0 ? 'volume_off' : val < 50 ? 'volume_down' : 'volume_up';
+        }
+        function toggleVolume() {
+            document.getElementById('volume-popup').classList.toggle('show');
+            playClickSound();
+        }
+        // ========== TOASTS ==========
+        let toastCount = 0;
+        function showToast(title, msg, icon = 'info', duration = 4000) {
+            playNotifSound();
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toastCount++;
+            toast.style.top = (20 + ((toastCount - 1) % 4) * 90) + 'px';
+            const iconMap = {
+                info: { bg: 'var(--accent)', ic: 'info' },
+                warning: { bg: 'var(--yellow)', ic: 'warning' },
+                error: { bg: 'var(--red)', ic: 'error' },
+                success: { bg: 'var(--green)', ic: 'check_circle' },
+                download: { bg: 'var(--accent)', ic: 'download' }
+            };
+            const ic = iconMap[icon] || iconMap.info;
+            toast.innerHTML = '<div class="toast-icon" style="background:' + ic.bg + '"><span class="material-icons-round" style="color:#fff;font-size:18px">' + ic.ic + '</span></div><div class="toast-body"><div class="toast-title">' + title + '</div><div class="toast-msg">' + msg + '</div></div><div class="toast-progress" style="width:100%"></div>';
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('show'));
+            const progress = toast.querySelector('.toast-progress');
+            let w = 100;
+            const intv = setInterval(() => { w -= (100 / (duration / 50)); progress.style.width = w + '%'; if (w <= 0) clearInterval(intv); }, 50);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => { toast.remove(); toastCount--; }, 500);
+            }, duration);
+        }
+        // ========== RENDER GAMES ==========
+        function renderGames(filter = 'all', search = '') {
+            const grid = document.getElementById('game-grid');
+            grid.innerHTML = '';
+            const filtered = games.filter(g => {
+                return (filter === 'all' || g.cat === filter) && g.title.toLowerCase().includes(search.toLowerCase());
+            });
+            document.getElementById('game-count').textContent = filtered.length + ' juegos';
+            filtered.forEach((game, i) => {
+                const card = document.createElement('a');
+                card.href = game.href;
+                card.className = 'game-card';
+                card.dataset.cat = game.cat;
+                if (game.celeste) card.onclick = (e) => { e.preventDefault(); checkCeleste(game.href); };
+                card.innerHTML = '<div class="card-img-wrap"><img src="' + game.img + '" alt="' + game.title + '" loading="lazy" onerror="this.style.background=\'var(--surface)\'" /><div class="card-overlay"><div class="card-overlay-text">' + game.desc + '</div></div><div class="play-icon"><span class="material-icons-round">play_arrow</span></div></div><div class="card-body"><div class="card-title">' + game.emoji + ' ' + game.title + '</div><div class="card-cat">' + (catLabels[game.cat] || game.cat) + '</div></div>';
+                card.addEventListener('mouseenter', () => playHoverSound());
+                card.addEventListener('click', () => playClickSound());
+                grid.appendChild(card);
+                setTimeout(() => card.classList.add('visible'), 60 * i + 50);
+            });
+        }
+        // ========== FILTER & SEARCH ==========
+        function filterGames(cat, btn) {
+            currentFilter = cat;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            playClickSound(); playWhoosh();
+            renderGames(cat, document.getElementById('search-input').value);
+        }
+        function searchGames(val) { renderGames(currentFilter, val); }
+        // ========== CELESTE MODAL ==========
+        let pendingUrl = "";
+        function checkCeleste(url) {
+            pendingUrl = url;
+            document.getElementById('warning-modal').style.display = 'flex';
+            playErrorSound();
+        }
+        function proceedToGame() { playClickSound(); window.location.href = pendingUrl; }
+        // ========== CLOCK ==========
+        function updateClock() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const mo = String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('taskbar-time').innerHTML = h + ':' + m + '<br><span style="font-size:0.65rem">' + d + '/' + mo + '/' + now.getFullYear() + '</span>';
+        }
+        setInterval(updateClock, 1000);
+        // ========== SPLASH -> APP ==========
+        document.getElementById('splash-enter-btn').addEventListener('click', function() {
+            playClickSound();
+            ensureAudio();
+            const splash = document.getElementById('splash-screen');
+            splash.style.transition = 'opacity 0.6s, transform 0.6s, filter 0.6s';
+            splash.style.opacity = '0';
+            splash.style.transform = 'scale(1.05)';
+            splash.style.filter = 'blur(15px)';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                document.getElementById('app').classList.add('visible');
+                playStartupSound();
+                renderGames();
+                setTimeout(() => createMusic(), 800);
+                setTimeout(() => showToast('Bienvenido', 'La Bóveda se ha cargado correctamente. A jugar! 🎮', 'success', 5000), 1200);
+                setTimeout(() => showToast('Consejo Pro', 'No le des click al botón de "Actualización"... o hazlo, tú decides 😏', 'warning', 6000), 8000);
+                updateClock();
+            }, 600);
+        });
+        // ========== TROLL SEQUENCE ==========
+        let trollStage = 0;
+        function startTroll() {
+            trollStage++;
+            const btn = document.getElementById('troll-btn');
+            if (trollStage === 1) {
+                playClickSound();
+                btn.querySelector('.troll-text').innerHTML = 'Descargando...<small>Por favor espere</small>';
+                showToast('Windows Update', 'Descargando actualización crítica...', 'download', 4000);
+                setTimeout(() => { showToast('Windows Update', 'Instalando componentes del sistema...', 'download', 3000); playGlitchSound(); }, 2500);
+                setTimeout(() => { showToast('Advertencia', 'No apague su equipo durante la actualización.', 'warning', 3000); }, 5000);
+                // Delete the music
+                setTimeout(() => {
+                    if (musicPlaying) {
+                        if (musicGain) musicGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+                        musicPlaying = false;
+                        clearTimeout(musicTimeout);
+                        document.querySelectorAll('.music-bar').forEach(b => b.classList.add('paused'));
+                        document.getElementById('play-icon').textContent = 'play_arrow';
+                    }
+                    playDeleteSound();
+                    setTimeout(() => {
+                        document.getElementById('music-title').textContent = 'Archivo eliminado';
+                        document.getElementById('music-artist').textContent = 'music.exe not found';
+                        showToast('Sistema', 'music.exe ha sido eliminado por la actualización.', 'error', 5000);
+                        playErrorSound();
+                    }, 700);
+                }, 4000);
+                // Trigger stage 2
+                setTimeout(() => {
+                    showToast('Error Fatal', 'La actualización ha fallado. Código: 0xTR0LL', 'error', 3000);
+                    playErrorSound();
+                    playGlitchSound();
+                    btn.querySelector('.troll-text').innerHTML = 'Error detectado<small>Click para reparar</small>';
+                    btn.querySelector('.troll-icon').style.background = 'var(--red)';
+                    trollStage = 1;
+                    btn.onclick = function() { triggerBSOD(); };
+                }, 8000);
+            }
+        }
+        function triggerBSOD() {
+            playBSODSound();
+            const bsod = document.getElementById('bsod');
+            bsod.style.display = 'flex';
+            let pct = 0;
+            const pctEl = document.getElementById('bsod-percent');
+            const intv = setInterval(() => {
+                pct += Math.floor(Math.random() * 8) + 1;
+                if (pct > 100) pct = 100;
+                pctEl.textContent = pct + '% complete';
+                // Glitch sounds at certain percentages
+                if (pct > 30 && pct < 35) playGlitchSound();
+                if (pct > 60 && pct < 65) playGlitchSound();
+                if (pct >= 100) {
+                    clearInterval(intv);
+                    setTimeout(() => {
+                        bsod.style.transition = 'background 0.2s';
+                        bsod.style.background = '#fff';
+                        setTimeout(() => {
+                            bsod.style.display = 'none';
+                            bsod.style.background = '#0078d4';
+                            // Restore troll btn
+                            const tBtn = document.getElementById('troll-btn');
+                            tBtn.querySelector('.troll-text').innerHTML = 'Actualización disponible<small>Windows Update v6.6.6</small>';
+                            tBtn.querySelector('.troll-icon').style.background = 'var(--accent)';
+                            tBtn.onclick = function() { startTroll(); };
+                            trollStage = 0;
+                            // Restore music
+                            musicPlaying = true;
+                            document.querySelectorAll('.music-bar').forEach(b => b.classList.remove('paused'));
+                            document.getElementById('play-icon').textContent = 'pause';
+                            document.getElementById('music-title').textContent = tracks[currentTrackIndex].name;
+                            document.getElementById('music-artist').textContent = tracks[currentTrackIndex].artist;
+                            if (musicGain) musicGain.gain.value = 0.35;
+                            musicLoop();
+                            playRestoreSound();
+                            showToast('Sistema Restaurado', 'Todo vuelve a la normalidad... te lo advertimos bro 😂', 'success', 5000);
+                        }, 200);
+                    }, 1500);
+                }
+            }, 300);
+        }
+        // ========== MISC LISTENERS ==========
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('volume-btn').contains(e.target) && !document.getElementById('volume-popup').contains(e.target)) {
+                document.getElementById('volume-popup').classList.remove('show');
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.getElementById('warning-modal').style.display = 'none';
+                document.getElementById('volume-popup').classList.remove('show');
+            }
+        });
     </script>
 </body>
 </html>
