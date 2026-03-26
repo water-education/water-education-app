@@ -204,6 +204,10 @@
                     "Game data"
                 );
                 updateProgress("Starting game engine...");
+                // UnityLoader.js uses these window globals to resolve blob URLs
+                window.asmUrll = asmUrl;
+                window.wasmUrll = wasmUrl;
+                window.dataUrll = dataUrl;
                 var json = {
                     "companyName": "SpanishFreddy",
                     "productName": "Cuphead",
@@ -213,7 +217,7 @@
                     "asmCodeUrl": asmUrl,
                     "asmMemoryUrl": "Build.asm.memory.unityweb",
                     "asmFrameworkUrl": "Build.asm.framework.unityweb",
-                    "TOTAL_MEMORY": 268435456,
+                    "TOTAL_MEMORY": 100000000,
                     "graphicsAPI": ["WebGL 2.0"],
                     "webglContextAttributes": { "preserveDrawingBuffer": false },
                     "splashScreenStyle": "Dark",
@@ -225,15 +229,9 @@
                 UnityLoader.instantiate("unityContainer", json, {
                     url: blobUrl,
                     Module: {
-                        ALLOW_MEMORY_GROWTH: 1,
                         onRuntimeInitialized: function () {
                             resizeUnityContainer();
                             loadingOverlay.remove();
-                            // Free blob URLs now that Unity has consumed them
-                            URL.revokeObjectURL(asmUrl);
-                            URL.revokeObjectURL(wasmUrl);
-                            URL.revokeObjectURL(dataUrl);
-                            URL.revokeObjectURL(blobUrl);
                         },
                     },
                 });
