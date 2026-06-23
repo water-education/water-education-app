@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>MyInstants Player</title>
+
+<link rel="stylesheet" type="text/css" href="app.css">
+
+<script src="https://code.jquery.com/jquery-1.4.2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+<script src="app.js"></script>
+</head>
+<body>
+
+<h1>MyInstants Player <sup><span style="font-size: 12px"><a href="https://github.com/HarpyWar/myinstants-player">GitHub</a></span></sup></h1>
+
+
+
+
+<div class="page-container">
+	<div class="search-container">
+		<input type="text" id="search-box" placeholder="Find in " autofocus /><button id="do-search">Search</button>
+	</div>
+	
+	<div class="tab-items">
+		<div class="tab-item active" id="tab-all">All sounds</div>
+		<div class="tab-item" id="tab-fav">Favourites</div>
+	</div>
+	<div class="clear"></div>
+	
+	<div id="items">...</div>
+	<div class="clear"></div>
+	<div class="pagelist"></div>
+	<div class="clear"></div>
+</div>
+
+<div id="audio-container" style="display: none"></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script id="item-template" type="text/x-handlebars-template">
+{{#each this.items}}
+
+	<div class="row-container">
+		<table><tr>
+		<td style="width: 18px; padding: 0">
+			<div class="fav {{is_bookmarked this.id}}" data-id="{{this.id}}" title="Add to favourites"></div> 
+		</td>
+		<td>
+			<div class="switch" title="Play sound">
+				<input type="checkbox" data-idx="{{@index}}">
+				<label></label>
+			</div> 
+		</td>
+		<td class="row-duration"><span data-init="{{ceil this.duration}}">{{ceil this.duration}}</span></td>
+		<td class="row-title">
+			<div class="row-title-container">
+				<div class="row-title" title="{{this.title}}">{{{highlight this.title}}}
+				</div>
+			</div>
+		</td>
+		</tr></table>
+	</div>
+	
+{{/each}}
+</script>
+
+<script id="pagelist-template" type="text/x-handlebars-template">
+{{#if this}}
+{{#each this}}
+	  <a class="btn-small select-page {{#if this.selected}}disabled{{/if}}" href="" style='display: block; float: left; margin: 1px'>{{this.number}}</a>
+{{/each}}
+{{else}}
+	Nothing found :(
+{{/if}}
+</script>
+
+
+<div class="copyrights">(c) 2016, <a rel="license" href="http://harpywar.com">HarpyWar</a>.</div>
+
+
+</body>
+</html>
