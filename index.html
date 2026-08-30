@@ -504,7 +504,9 @@
             position: relative;
         }
         .game-card.visible { opacity: 1; transform: translateY(0); }
-        .game-card:hover { border-color: var(--border-hover); box-shadow: 0 18px 44px rgba(0,0,0,0.5), 0 0 30px rgba(var(--accent-rgb),0.12); transform: translateY(-6px) scale(1.02); }
+        .game-card { transform-style: preserve-3d; will-change: transform; }
+        .game-card:hover { border-color: var(--border-hover); box-shadow: 0 18px 44px rgba(0,0,0,0.5), 0 0 30px rgba(var(--accent-rgb),0.12); }
+        .card-img-wrap, .card-body { transform: translateZ(18px); }
         .game-card::after {
             content: ''; position: absolute; inset: -1px; border-radius: 16px; padding: 1.5px;
             background: linear-gradient(135deg, var(--accent), var(--accent2), var(--accent4), var(--accent5), var(--accent));
@@ -647,9 +649,10 @@
             max-width: 92vw;
         }
         .mp-visual { display: flex; align-items: flex-end; gap: 3px; height: 30px; width: 44px; }
-        .mp-bar { flex: 1; background: linear-gradient(to top, var(--accent), var(--accent2)); border-radius: 2px; height: 30%; animation: mpBounce 0.8s ease-in-out infinite; }
+        .mp-bar { flex: 1; background: linear-gradient(to top, var(--accent), var(--accent2)); border-radius: 2px; height: 30%; animation: mpBounce 0.8s ease-in-out infinite; transition: height 0.08s linear; }
         .mp-bar:nth-child(2){ animation-delay: 0.1s;} .mp-bar:nth-child(3){ animation-delay: 0.25s;} .mp-bar:nth-child(4){ animation-delay: 0.15s;} .mp-bar:nth-child(5){ animation-delay: 0.3s;}
         .mp-bar.paused { animation-play-state: paused; height: 20%; }
+        .mp-bar.audio-live { animation: none; }
         @keyframes mpBounce { 0%,100%{ height: 25%;} 50%{ height: 100%;} }
         .mp-info { min-width: 130px; max-width: 170px; }
         .mp-title { font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1307,12 +1310,36 @@
             { name: "Turbo Jungle", artist: "Jungle FM", genre: "DnB", style: "dnb" },
             { name: "Warp Speed", artist: "Synth Wave", genre: "SYNTHWAVE", style: "synthwave" },
         ];
+        let analyser = null, analyserData = null, eqRAF = null;
         function createMusic(){
             ensureAudio();
-            if (!musicGain){ musicGain = audioCtx.createGain(); musicGain.gain.value = (state.settings && typeof state.lastVol==='number'? state.lastVol:0.4)*0.5; musicGain.connect(audioCtx.destination); }
+            if (!musicGain){
+                musicGain = audioCtx.createGain();
+                musicGain.gain.value = (state.settings && typeof state.lastVol==='number'? state.lastVol:0.4)*0.5;
+                analyser = audioCtx.createAnalyser();
+                analyser.fftSize = 32;
+                analyser.smoothingTimeConstant = 0.75;
+                analyserData = new Uint8Array(analyser.frequencyBinCount);
+                musicGain.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                document.querySelectorAll('.mp-bar').forEach(b=> b.classList.add('audio-live'));
+                drawEqualizer();
+            }
             musicPlaying = true;
             updateTrackInfo();
             musicLoop();
+        }
+        function drawEqualizer(){
+            eqRAF = requestAnimationFrame(drawEqualizer);
+            const bars = document.querySelectorAll('.mp-bar');
+            if (!bars.length) return;
+            if (!musicPlaying || !analyser){ bars.forEach(b=> b.style.height = '20%'); return; }
+            analyser.getByteFrequencyData(analyserData);
+            bars.forEach((b,i)=>{
+                const v = analyserData[i + 1] || 0;
+                const pct = Math.max(14, Math.min(100, (v/255)*130));
+                b.style.height = pct + '%';
+            });
         }
         function musicLoop(){
             if (!musicPlaying || !audioCtx) return;
@@ -1492,13 +1519,20 @@
         }
         // Steam-style parallax tilt on hero
         const hero = document.getElementById('hero');
+        hero.style.perspective = '1400px';
+        let heroRAF = null;
         hero.addEventListener('mousemove', e=>{
+            if (isLowPerf) return;
             const r = hero.getBoundingClientRect();
             const px = (e.clientX - r.left)/r.width - 0.5;
             const py = (e.clientY - r.top)/r.height - 0.5;
-            document.getElementById('hero-bg').style.transform = `translate(${px*-20}px, ${py*-20}px) scale(1.06)`;
-            document.querySelector('.hero-blob').style.transform = `translate(${px*40}px, ${py*40}px)`;
-            document.getElementById('hero-content').style.transform = `translateY(-50%) translate(${px*16}px, ${py*16}px)`;
+            if (heroRAF) return;
+            heroRAF = requestAnimationFrame(()=>{
+                document.getElementById('hero-bg').style.transform = `translate(${px*-20}px, ${py*-20}px) scale(1.06) rotateX(${(py*4).toFixed(2)}deg) rotateY(${(px*-4).toFixed(2)}deg)`;
+                document.querySelector('.hero-blob').style.transform = `translate(${px*40}px, ${py*40}px)`;
+                document.getElementById('hero-content').style.transform = `translateY(-50%) translate(${px*16}px, ${py*16}px) rotateX(${(py*-3).toFixed(2)}deg) rotateY(${(px*3).toFixed(2)}deg)`;
+                heroRAF = null;
+            });
         });
         hero.addEventListener('mouseleave', ()=>{
             document.getElementById('hero-bg').style.transform = '';
@@ -1523,14 +1557,46 @@
             document.getElementById('row-horror').innerHTML = games.filter(g=>g.cat==='horror').slice(0,10).map(g=>capHTML(g)).join('');
             document.getElementById('row-racing').innerHTML = games.filter(g=>g.cat==='racing').slice(0,10).map(g=>capHTML(g)).join('');
             buildFavRow();
+            applyTiltToAll('#page-home .cap');
         }
         function buildFavRow(){
             const favs = games.filter(g=>state.favorites.includes(g.id));
             const el = document.getElementById('row-favs');
             if (favs.length===0){ el.innerHTML = `<div class="empty-state" style="padding:30px"><span class="material-icons-round">favorite_border</span><div>No favorites yet — tap the ❤ on any game.</div></div>`; }
             else el.innerHTML = favs.map(g=>capHTML(g,'❤ FAV')).join('');
+            applyTiltToAll('#row-favs .cap');
         }
         function scrollRow(id, dir){ document.getElementById(id).scrollBy({left: dir*600, behavior:'smooth'}); playClickSound(); }
+
+        // ============================================================
+        // 3D TILT ENGINE (mousemove-tracked card tilt, Chromebook-safe)
+        // ============================================================
+        const isTouchDevice = matchMedia('(pointer: coarse)').matches;
+        const isLowPerf = isTouchDevice || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2);
+        function attachTilt(el, strength = 9, lift = 6){
+            if (isLowPerf || !el || el.__tiltBound) return;
+            el.__tiltBound = true;
+            let raf = null, tx = 0, ty = 0;
+            el.addEventListener('mousemove', e => {
+                const r = el.getBoundingClientRect();
+                tx = (e.clientX - r.left) / r.width - 0.5;
+                ty = (e.clientY - r.top) / r.height - 0.5;
+                if (raf) return;
+                raf = requestAnimationFrame(() => {
+                    el.style.transition = 'transform 0.12s ease-out';
+                    el.style.transform = `perspective(800px) rotateX(${(-ty * strength).toFixed(2)}deg) rotateY(${(tx * strength).toFixed(2)}deg) translateY(-${lift}px) scale(1.025)`;
+                    raf = null;
+                });
+            });
+            el.addEventListener('mouseleave', () => {
+                el.style.transition = 'transform 0.5s var(--spring)';
+                el.style.transform = '';
+            });
+        }
+        function applyTiltToAll(selector){
+            if (isLowPerf) return;
+            document.querySelectorAll(selector).forEach(el => attachTilt(el));
+        }
 
         // ============================================================
         // SCROLL REVEAL ANIMATIONS
@@ -1589,6 +1655,7 @@
                 card.querySelector('.fav-btn').addEventListener('click', e=>{ e.stopPropagation(); toggleFav(g.id); });
                 card.addEventListener('mouseenter', ()=>{ playHoverSound(); spawnEmoji(g.emoji); });
                 card.addEventListener('click', ()=> openGameModal(g.id));
+                attachTilt(card, 8, 6);
                 grid.appendChild(card);
                 setTimeout(()=> card.classList.add('visible'), 40*i+30);
             });
@@ -1675,6 +1742,7 @@
             });
             document.getElementById('row-store1').innerHTML = games.slice(0,12).map(g=>capHTML(g)).join('');
             document.getElementById('row-store2').innerHTML = [...games].reverse().slice(0,12).map(g=>capHTML(g,'NEW')).join('');
+            applyTiltToAll('#page-store .cap');
         }
  
         // ============================================================
