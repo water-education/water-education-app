@@ -14,7 +14,6 @@ html, body {
   padding: 0;
   overflow: hidden;
   background: #000;
-  touch-action: none;
 }
 #unity-container {
   position: absolute;
@@ -29,7 +28,6 @@ html, body {
   height: 100%;
   background: #000;
   outline: none;
-  image-rendering: auto; /* change to pixelated if you prefer a crisp look at low res */
 }
 #unity-footer { display: none; }
 #unity-loading-bar {
@@ -129,28 +127,6 @@ function unityShowBanner(msg, type) {
   updateBannerVisibility();
 }
 
-// ========== LOW-END / CHROMEBOOK DETECTION ==========
-var isChromebook = /\bCrOS\b/.test(navigator.userAgent);
-var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-var cores = navigator.hardwareConcurrency || 2;
-var memoryGB = navigator.deviceMemory || 4; // approximate
-
-// Aggressive scaling for low-end hardware
-var isLowEnd = isChromebook || isMobile || cores <= 4 || memoryGB <= 4;
-
-// Render scale: 1.0 = native, 0.75 = good balance, 0.5 = very aggressive
-var renderScale = 1.0;
-if (isLowEnd) {
-  renderScale = isChromebook ? 0.65 : 0.75; // Chromebooks get more aggressive
-}
-if (cores <= 2 || memoryGB <= 2) {
-  renderScale = 0.5;
-}
-
-// Cap absolute internal resolution (important for high-DPI Chromebook panels)
-var MAX_INTERNAL_WIDTH  = isLowEnd ? 1280 : 1920;
-var MAX_INTERNAL_HEIGHT = isLowEnd ? 720  : 1080;
-
 var repoBase = "https://cdn.jsdelivr.net/gh/wasmdotrip/Clustertruck-Port@main/";
 var buildUrl = repoBase + "Build";
 var loaderUrl = buildUrl + "/ClusterTruckWEB.loader.js";
@@ -225,56 +201,20 @@ async function fetchAsScriptBlob(url) {
 async function resolveUrl(url, mimeType, plan, onBytes, onFile) {
   var parts = plan[url];
   if (!parts || !parts.length) return url;
-
-  // Parallel download of parts (much faster)
-  onFile(basename(parts[0].url) + " (" + parts.length + " parts)");
-  var buffers = await Promise.all(
-    parts.map(function(p) {
-      return fetchPart(p.url, onBytes);
-    })
-  );
-
+  var buffers = [];
+  for (var i = 0; i < parts.length; i++) {
+    onFile(basename(parts[i].url));
+    buffers.push(await fetchPart(parts[i].url, onBytes));
+  }
   var blob = new Blob(buffers, { type: mimeType });
   var objUrl = URL.createObjectURL(blob);
   objectUrls.push(objUrl);
   return objUrl;
 }
 
-function applyLowResCanvas() {
-  // Calculate desired internal resolution
-  var cssW = container.clientWidth;
-  var cssH = container.clientHeight;
-
-  var internalW = Math.min(Math.floor(cssW * renderScale), MAX_INTERNAL_WIDTH);
-  var internalH = Math.min(Math.floor(cssH * renderScale), MAX_INTERNAL_HEIGHT);
-
-  // Keep aspect ratio
-  var aspect = cssW / cssH;
-  if (internalW / internalH > aspect) {
-    internalW = Math.floor(internalH * aspect);
-  } else {
-    internalH = Math.floor(internalW / aspect);
-  }
-
-  // Set the actual WebGL buffer size
-  canvas.width  = internalW;
-  canvas.height = internalH;
-
-  // CSS stretches it to full screen
-  canvas.style.width  = "100%";
-  canvas.style.height = "100%";
-
-  console.log("[Low-end] Internal resolution:", internalW + "x" + internalH,
-              "| Scale:", renderScale, "| Chromebook:", isChromebook);
-}
-
 async function boot() {
   loadingBar.style.display = "block";
   statusText.textContent = "Checking files...";
-
-  // Apply low-res early
-  applyLowResCanvas();
-  window.addEventListener("resize", applyLowResCanvas);
 
   var plan = {};
   plan[dataUrl] = await discoverParts(dataUrl);
@@ -307,6 +247,11 @@ async function boot() {
 
   statusText.textContent = "Starting...";
 
+  // Detect low-end / Chromebook
+  var isChromebook = /\bCrOS\b/.test(navigator.userAgent);
+  var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  var isLowEnd = isChromebook || isMobile || (navigator.hardwareConcurrency || 4) <= 4;
+
   var config = {
     dataUrl: resolvedData,
     frameworkUrl: resolvedFramework,
@@ -317,17 +262,14 @@ async function boot() {
     productVersion: "1.0",
     showBanner: unityShowBanner,
 
-    // === CRITICAL LOW-END SETTINGS ===
-    devicePixelRatio: 1,                    // force low DPI (huge performance win)
-    matchWebGLToCanvasSize: false,          // we control canvas size ourselves
-
-    webglContextAttributes: {
-      powerPreference: isLowEnd ? "low-power" : "default",
-      premultipliedAlpha: false,
-      preserveDrawingBuffer: false,
-      antialias: false                      // disable MSAA if the build supports it
-    }
+    // Only the safe + effective settings
+    devicePixelRatio: isLowEnd ? 0.75 : 1,   // 0.75 is usually the sweet spot
   };
+
+  // Slightly more aggressive on very weak devices
+  if ((navigator.hardwareConcurrency || 4) <= 2) {
+    config.devicePixelRatio = 0.6;
+  }
 
   if (isMobile || isChromebook) {
     container.className = "unity-mobile";
@@ -347,14 +289,8 @@ async function boot() {
   });
 
   loadingBar.style.display = "none";
-
-  // Cleanup blob URLs to free memory
   objectUrls.forEach(function (u) { URL.revokeObjectURL(u); });
   objectUrls = [];
-
-  // Force another resize after Unity starts (some builds fight the size)
-  setTimeout(applyLowResCanvas, 100);
-  setTimeout(applyLowResCanvas, 1000);
 
   window.addEventListener("keydown", function (e) {
     if (e.key === "F" || e.key === "f") {
