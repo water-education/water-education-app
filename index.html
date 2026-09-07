@@ -816,6 +816,16 @@
             <button class="dialog-btn" onclick="proceedToGame()">CONTINUE</button>
         </div>
     </div>
+
+    <div id="new-browser-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(30px); z-index:70000; align-items:center; justify-content:center;">
+        <div class="win-dialog">
+            <span class="material-icons-round" style="font-size:52px; color: var(--accent); margin-bottom: 20px;">new_releases</span>
+            <h2>New browser added!</h2>
+            <p>test it in the extra</p>
+            <button class="dialog-btn" onclick="document.getElementById('new-browser-modal').style.display='none'">CLOSE</button>
+        </div>
+    </div>
+
  
     <!-- ============ KONAMI ============ -->
     <div class="konami-overlay" id="konami-overlay">
@@ -2055,6 +2065,10 @@
             else setMusicUI(false);
             document.getElementById('vol-slider').value = Math.round((state.lastVol??0.4)*100);
             setTimeout(()=> showToast('Welcome to the Nexus', 'Water Education V3.0 loaded. Explore every section! 🌊','success',5000), 900);
+            if (!localStorage.getItem('newBrowserWarningShown')) {
+                setTimeout(()=>{ document.getElementById('new-browser-modal').style.display='flex'; }, 1200);
+                localStorage.setItem('newBrowserWarningShown', 'true');
+            }
             setTimeout(()=> showToast('Pro Tip', "Don't click that \"Update\" button... or do 😏",'warning',6000), 6500);
             setTimeout(()=> showToast('Easter Egg', 'Try the Konami Code: ↑↑↓↓←→←→ B A 👾','info',5000), 12500);
             updateXPUI();
