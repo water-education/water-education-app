@@ -826,6 +826,20 @@
         </div>
     </div>
 
+    <div id="wisp-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(30px); z-index:70000; align-items:center; justify-content:center;">
+        <div class="win-dialog" style="max-width:560px;">
+            <span class="material-icons-round" style="font-size:52px; color: var(--yellow); margin-bottom: 20px;">build</span>
+            <h2>This is not fully working</h2>
+            <p>Copy this and follow the tutorial:</p>
+            <div style="display:flex; align-items:center; gap:8px; background:rgba(0,0,0,0.35); border:1px solid rgba(var(--accent-rgb),0.3); border-radius:12px; padding:10px 14px; margin-bottom:18px;">
+                <code id="wisp-url" style="flex:1; font-size:0.8rem; word-break:break-all; color: var(--accent);">wss://wisp.mercurywork.shop/</code>
+                <span class="material-icons-round" style="cursor:pointer; font-size:20px;" onclick="navigator.clipboard.writeText(document.getElementById('wisp-url').textContent); showToast('Copied', 'Wisp URL copied to clipboard','success',2000);">content_copy</span>
+            </div>
+            <video src="tutorial.webm" controls style="width:100%; border-radius:12px; margin-bottom:24px; border:1px solid rgba(var(--accent-rgb),0.2);"></video>
+            <button class="dialog-btn" onclick="document.getElementById('wisp-modal').style.display='none'; document.querySelector('#wisp-modal video').pause(); showToast('Launching', 'Opening Browser...', 'download', 2000); setTimeout(()=>{ window.location.href = pendingHref; }, 350);">CONTINUE</button>
+        </div>
+    </div>
+
  
     <!-- ============ KONAMI ============ -->
     <div class="konami-overlay" id="konami-overlay">
@@ -1145,7 +1159,7 @@
             { title: "Hollow Knight", emoji: "⚔️", img: "hollow.jpg", cat: "rpg", desc: "Insects with swords. 🐜", href: "hollow-knight.html" },
             { title: "Soundboard", emoji: "🔊", img: "image", cat: "extra", desc: "Just play sounds, 🔊", href: "myinstants/index.html" },
             { title: "Game suggestion", emoji: "✍️", img: "image", cat: "extra", desc: "suggest a game, ✍️", href: "google.html" },
-            { title: "Browser", emoji: "🌐", img: "image", cat: "extra", desc: "Explore the internet without limits, 🌐", href: "GUST.html" },
+            { title: "Browser", emoji: "🌐", img: "image", cat: "extra", desc: "Explore the internet without limits, 🌐", href: "GUST.html", wispWarning: true },
             { title: "Doki doki literature club", emoji: "📚", img: "doki.jpeg", cat: "horror", desc: "idk what this game is about, 📚", href: "dokidoki/index.html" },
             { title: "Baldi's basics", emoji: "📏 ", img: "466.png", cat: "horror", desc: "Get all the books", href: "bladi.html" },
             { title: "10 Mins Till Dawn", emoji: "🌑", img: "430.png", cat: "survival", desc: "Survive, if you can. 🕯️", href: "10minutes.html" },
@@ -1718,6 +1732,7 @@
             const g = games.find(x=>x.id===id); if(!g) return;
             state.plays[g.id] = (state.plays[g.id]||0)+1; saveState();
             addXP(10); unlock('gamer'); playClickSound();
+            if (g.wispWarning){ pendingHref=g.href; document.getElementById('wisp-modal').style.display='flex'; playErrorSound(); return; }
             if (g.celeste){ pendingHref=g.href; document.getElementById('warning-modal').style.display='flex'; playErrorSound(); return; }
             showToast('Launching', `Opening ${g.title}...`, 'download', 2000);
             setTimeout(()=> { window.location.href = g.href; }, 350);
