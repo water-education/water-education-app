@@ -19,6 +19,7 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
 #unity-status{margin-top:8px;text-align:center;font-family:Arial,sans-serif;font-size:11px;color:#999;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #unity-warning{position:absolute;top:10px;left:50%;transform:translateX(-50%);font-family:Arial,sans-serif;font-size:11px;color:#d9a441}
 #unity-error{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;max-width:80%;text-align:center;font-family:Arial,sans-serif;font-size:12px;color:#d97070;line-height:1.4}
+#fps-hud{position:absolute;top:6px;left:8px;font:11px/1.2 monospace;color:#0f0;background:rgba(0,0,0,.55);padding:3px 6px;border-radius:3px;z-index:10;pointer-events:none;display:none}
 </style>
 </head>
 <body>
@@ -30,6 +31,7 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
 </div>
 <div id="unity-warning"></div>
 <div id="unity-error"></div>
+<div id="fps-hud">-- FPS</div>
 </div>
 <script>
 (function(){
@@ -39,7 +41,8 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
       progressBarFull=document.querySelector("#unity-progress-bar-full"),
       statusText=document.querySelector("#unity-status"),
       warningBanner=document.querySelector("#unity-warning"),
-      errorBox=document.querySelector("#unity-error");
+      errorBox=document.querySelector("#unity-error"),
+      fpsHud=document.querySelector("#fps-hud");
 
   function showError(msg){
     loadingBar.style.display="none";
@@ -60,11 +63,14 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
     warningBanner.style.display="block";
   }
 
-  // ---- Device tiering, computed up front so it can drive concurrency/DPR from the start ----
+  // ---- Device tiering ----
   var cores=navigator.hardwareConcurrency||2;
   var isChromebook=/\bCrOS\b/.test(navigator.userAgent);
-  var isDualCore=cores<=2; // N4020
-  var isLowEnd=isChromebook||cores<=4; // covers both N4020 and N4120
+  var isDualCore=cores<=2;
+  var isLowEnd=isChromebook||cores<=4;
+  // Extra-weak signal: very little RAM or old ChromeOS
+  var mem=navigator.deviceMemory||4;
+  var isVeryLow=isDualCore||(isChromebook&&mem<=4)||cores<=2;
 
   var repoBase="https://cdn.jsdelivr.net/gh/wasmdotrip/Clustertruck-Port@main/",
       buildUrl=repoBase+"Build",
@@ -74,13 +80,11 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
       wasmUrl=buildUrl+"/ClusterTruckWEB.wasm",
       MAX_PARTS=64;
 
-  // Tuned per-device: fewer parallel connections/buffers in flight = lower peak memory
-  // and less contention on a weak NIC/driver stack. Discovery (HEAD, no body) can afford
-  // a bit more parallelism than actual part downloads (which each hold a live buffer).
-  var DISCOVERY_CONCURRENCY=isDualCore?2:(isLowEnd?3:4);
-  var DOWNLOAD_CONCURRENCY=isDualCore?1:(isLowEnd?2:3);
-  var FETCH_TIMEOUT_MS=20000;
-  var MAX_RETRIES=1;
+  // Conservative concurrency = less memory pressure + less driver contention
+  var DISCOVERY_CONCURRENCY=isVeryLow?1:(isLowEnd?2:3);
+  var DOWNLOAD_CONCURRENCY=isVeryLow?1:(isLowEnd?1:2);
+  var FETCH_TIMEOUT_MS=25000;
+  var MAX_RETRIES=2;
 
   function basename(url){return url.split("/").pop();}
 
@@ -96,7 +100,6 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
     });
   }
 
-  // Cheap school-wifi resilience: one retry with a short backoff before giving up on a part.
   async function fetchWithRetry(url,opts){
     var lastErr;
     for(var attempt=0;attempt<=MAX_RETRIES;attempt++){
@@ -104,13 +107,12 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
         return await fetchWithTimeout(url,opts);
       }catch(e){
         lastErr=e;
-        if(attempt<MAX_RETRIES)await new Promise(function(r){setTimeout(r,400);});
+        if(attempt<MAX_RETRIES)await new Promise(function(r){setTimeout(r,300+attempt*200);});
       }
     }
     throw lastErr;
   }
 
-  // Parallel HEAD discovery with concurrency limit
   async function discoverParts(url){
     var parts=[], i=1, done=false;
     async function worker(){
@@ -153,14 +155,13 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
     for(var k=0;k<chunks.length;k++){
       out.set(chunks[k],offset);
       offset+=chunks[k].length;
-      chunks[k]=null; // drop reference as soon as it's copied in
+      chunks[k]=null;
     }
     return out;
   }
 
   var objectUrls=[];
 
-  // Fetch parts with limited, device-tuned concurrency, assemble into one Blob.
   async function resolveUrl(url,mimeType,plan,onBytes,onFile){
     var parts=plan[url];
     if(!parts||!parts.length)return url;
@@ -177,13 +178,25 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
     for(var w=0;w<DOWNLOAD_CONCURRENCY;w++)workers.push(worker());
     await Promise.all(workers);
     var blob=new Blob(buffers,{type:mimeType});
-    // Blob() snapshots the bytes at construction time, so the source buffers are dead
-    // weight from here on — drop the references so GC can reclaim them before Unity
-    // even starts consuming memory for the runtime itself.
     buffers.length=0;
     var objUrl=URL.createObjectURL(blob);
     objectUrls.push(objUrl);
     return objUrl;
+  }
+
+  // ---- Aggressive resolution control ----
+  // matchWebGLToCanvasSize:false lets us own the internal render resolution
+  // while CSS keeps the canvas filling the screen (pixelated upscale).
+  function applyLowRes(scale){
+    var cssW=container.clientWidth||window.innerWidth;
+    var cssH=container.clientHeight||window.innerHeight;
+    // Clamp so we never go below a usable size or above native
+    var targetW=Math.max(320,Math.floor(cssW*scale));
+    var targetH=Math.max(180,Math.floor(cssH*scale));
+    if(canvas.width!==targetW||canvas.height!==targetH){
+      canvas.width=targetW;
+      canvas.height=targetH;
+    }
   }
 
   async function boot(){
@@ -225,16 +238,20 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
 
     statusText.textContent="Starting...";
 
-    // devicePixelRatio tiering: this is the single biggest lever on the weak iGPU,
-    // since it directly scales fill-rate/fragment cost. Chromebook flag is checked
-    // first because on this exact model it's the more reliable signal than core count.
-    var dpr=1;
-    if(isDualCore||isChromebook)dpr=0.5;
-    else if(isLowEnd)dpr=0.7;
+    // ---- Resolution / DPR strategy ----
+    // Very aggressive on dual-core / Chromebook: ~0.35–0.40 of screen pixels.
+    // This is the single biggest FPS lever on weak iGPUs.
+    var renderScale;
+    if(isVeryLow)      renderScale=0.35;
+    else if(isLowEnd)  renderScale=0.50;
+    else               renderScale=0.75;
+
+    // devicePixelRatio is kept low so Unity's internal logic stays conservative
+    var dpr=isVeryLow?0.4:(isLowEnd?0.55:0.8);
 
     var config={
       dataUrl:resolvedData,
-      frameworkUrl:frameworkUrl, // loaded directly by Unity's own runtime, no manual blob copy
+      frameworkUrl:frameworkUrl,
       codeUrl:resolvedWasm,
       streamingAssetsUrl:repoBase+"StreamingAssets",
       companyName:"Landfall",
@@ -242,6 +259,8 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
       productVersion:"1.0",
       showBanner:unityShowBanner,
       devicePixelRatio:dpr,
+      // Critical: stop Unity from forcing canvas buffer = CSS size * DPR
+      matchWebGLToCanvasSize:false,
       webglContextAttributes:{
         alpha:false,
         antialias:false,
@@ -249,19 +268,18 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
         stencil:false,
         preserveDrawingBuffer:false,
         powerPreference:"low-power",
-        desynchronized:false
+        desynchronized:true,          // can reduce latency / jank on some ChromeOS builds
+        failIfMajorPerformanceCaveat:false
       }
     };
 
-    if(isChromebook||isLowEnd){
-      container.className="unity-mobile";
-      canvas.className="unity-mobile";
-    }
+    // Force mobile-style pixelated upscale path
+    container.className="unity-mobile";
+    canvas.className="unity-mobile";
 
-    // Loader script is fetched directly by the browser (streamed, cached, compiled
-    // natively) instead of being read into a JS string and re-wrapped as a Blob —
-    // that round trip cost a full extra in-memory text copy for no benefit here,
-    // since loader.js isn't split into parts.
+    // Set initial low-res buffer before Unity starts
+    applyLowRes(renderScale);
+
     await new Promise(function(resolve,reject){
       var script=document.createElement("script");
       script.src=loaderUrl;
@@ -278,9 +296,59 @@ html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden;background:#
     objectUrls.forEach(function(u){URL.revokeObjectURL(u);});
     objectUrls.length=0;
 
+    // ---- Post-boot performance knobs ----
+    // Try to force 30 FPS target (Unity may or may not expose this on older builds)
+    try{
+      if(unityInstance.Module&&typeof unityInstance.Module.SetTargetFrameRate==="function"){
+        unityInstance.Module.SetTargetFrameRate(30);
+      }
+    }catch(e){}
+
+    // Keep the canvas buffer at the low resolution even after resize / orientation change
+    function onResize(){
+      applyLowRes(renderScale);
+    }
+    window.addEventListener("resize",onResize,{passive:true});
+    // Some Chromebooks fire orientationchange without a reliable resize
+    window.addEventListener("orientationchange",function(){
+      setTimeout(onResize,150);
+    },{passive:true});
+
+    // Simple FPS counter so you can see the effect immediately
+    fpsHud.style.display="block";
+    var frames=0, last=performance.now();
+    function tick(now){
+      frames++;
+      if(now-last>=1000){
+        var fps=Math.round(frames*1000/(now-last));
+        fpsHud.textContent=fps+" FPS  |  scale "+Math.round(renderScale*100)+"%";
+        frames=0;
+        last=now;
+        // Optional adaptive: if we are still <22 FPS, drop scale a bit more
+        if(fps<22&&renderScale>0.28){
+          renderScale=Math.max(0.28,renderScale-0.04);
+          applyLowRes(renderScale);
+        }else if(fps>38&&renderScale<0.55&&isLowEnd){
+          // gentle recovery so it doesn't stay ultra-blurry forever
+          renderScale=Math.min(0.55,renderScale+0.03);
+          applyLowRes(renderScale);
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // Fullscreen on F
     window.addEventListener("keydown",function(e){
       if((e.key==="F"||e.key==="f")&&(e.target===document.body||e.target===canvas)){
         unityInstance.SetFullscreen(1);
+      }
+      // Press R to cycle resolution scale manually for testing
+      if((e.key==="R"||e.key==="r")&&(e.target===document.body||e.target===canvas)){
+        if(renderScale<=0.30)renderScale=0.45;
+        else if(renderScale<=0.45)renderScale=0.60;
+        else renderScale=0.30;
+        applyLowRes(renderScale);
       }
     },{passive:true});
   }
