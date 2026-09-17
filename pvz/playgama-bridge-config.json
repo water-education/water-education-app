@@ -1,0 +1,76 @@
+{
+    "$schema": "https://bridge.playgama.com/v1/stable/schema.json",
+    "advertisement": {
+        "interstitial": {
+            "preloadOnStart": false
+        },
+        "rewarded": {
+            "preloadOnStart": false
+        },
+        "useBuiltInErrorPopup": true,
+        "backfillId": ""
+    },
+    "payments": [{
+        "id" : "itsfine_0",
+        "playgama": {
+            "amount": 2
+        }},
+        {
+            "id" : "chillguy_0",
+            "playgama": {
+                "amount": 2
+            }
+        },
+        {
+            "id" : "trollface_0",
+            "playgama": {
+                "amount": 2
+            }
+        },
+        {
+            "id" : "gru_0",
+            "playgama": {
+                "amount": 2
+            }
+        },
+        {
+            "id" : "iceshroomwatch_0",
+            "playgama": {
+                "amount": 2
+            }
+        },
+        {
+            "id" : "memesbundle0",
+            "playgama": {
+                "amount": 8
+            }
+        },
+        {
+            "id" : "memesbundle1",
+            "playgama": {
+                "amount": 6
+            }
+        },
+        {
+            "id" : "memesbundle2",
+            "playgama": {
+                "amount": 4
+            }
+        },
+        {
+            "id" : "memesbundle3",
+            "playgama": {
+                "amount": 2
+            }
+        },
+        {
+            "id" : "money_1",
+            "playgama": {
+                "amount": 12
+            }
+        }],
+    "leaderboards": [],
+    "sendAnalyticsEvents": true,
+    "showFullLoadingLogo": false,
+    "remoteConfig":"{ads:[1,120,1,100]},{showad:true},{banner:bottom}"
+}

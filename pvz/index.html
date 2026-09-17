@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en-us">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>Plants Vs Zombies Fusion</title>
+        <!-- Note: bootstrap.js removed as it's not needed for a standalone build -->
+        <link rel="preconnect" href="https://bridge.playgama.com">
+        <!-- Preload game files from the correct subfolder -->
+        <link rel="preload" href="cmpe6ltov004an30htbub9kl7/Build/PvzFM.wasm.unityweb" as="fetch" type="application/wasm" crossorigin="anonymous">
+        <link rel="preload" href="cmpe6ltov004an30htbub9kl7/Build/PvzFM.data.unityweb" as="fetch" crossorigin="anonymous">
+        <link rel="preload" href="cmpe6ltov004an30htbub9kl7/Build/PvzFM.framework.js.unityweb" as="script">
+        <style>
+            html, body {
+                width: 100%;
+                height: 100%;
+                padding: 0px;
+                margin: 0px;
+                background: #242424;
+                overflow: hidden;
+            }
+            .fullscreen-canvas {
+                width: 100%;
+                height: 100%;
+                position: absolute;
+                top: 0px;
+                left: 0px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- The canvas is where the game will render -->
+        <canvas id="canvas" class="fullscreen-canvas"></canvas>
+        
+        <!-- Add a simple loading indicator -->
+        <div id="loading-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-family: sans-serif; text-align: center; z-index: 10;">
+            <div id="loading-message">Initializing Game...</div>
+        </div>
+        
+        <!-- Load the Playgama bridge, which is also inside the subfolder -->
+        <script src="cmpe6ltov004an30htbub9kl7/playgama-bridge-unity.js"></script>
+        
+        <script>
+            // --- Wait for the Playgama Bridge to be ready ---
+            function waitForBridge() {
+                return new Promise((resolve) => {
+                    if (typeof window.Playgama !== 'undefined' && window.Playgama.Bridge) {
+                        console.log("Playgama bridge ready");
+                        resolve();
+                    } else {
+                        setTimeout(() => waitForBridge().then(resolve), 100);
+                    }
+                });
+            }
+            
+            async function startGame() {
+                // 1. Wait for the bridge to be fully initialized
+                await waitForBridge();
+                
+                // 2. Define configuration with paths inside the subfolder
+                const canvas = document.getElementById('canvas');
+                const config = {
+                    dataUrl: "cmpe6ltov004an30htbub9kl7/Build/PvzFM.data.unityweb",
+                    frameworkUrl: "cmpe6ltov004an30htbub9kl7/Build/PvzFM.framework.js.unityweb",
+                    codeUrl: "cmpe6ltov004an30htbub9kl7/Build/PvzFM.wasm.unityweb",
+                    streamingAssetsUrl: "cmpe6ltov004an30htbub9kl7/StreamingAssets",
+                    companyName: "CoreScripts",
+                    productName: "PVZ Fusion",
+                    productVersion: "1.0"
+                };
+                
+                // 3. Wait for the Unity loader script to be available, then start
+                function launch() {
+                    if (typeof createUnityInstance !== 'undefined') {
+                        const loadingMsg = document.getElementById('loading-message');
+                        createUnityInstance(canvas, config, function(progress) {
+                            loadingMsg.innerText = `Loading: ${Math.round(progress * 100)}%`;
+                        }).then(function(unityInstance) {
+                            console.log('Game ready!');
+                            // Hide loading overlay once game is ready
+                            const overlay = document.getElementById('loading-overlay');
+                            if (overlay) overlay.style.display = 'none';
+                        }).catch(function(err) {
+                            console.error('Game error:', err);
+                            loadingMsg.innerText = 'Error loading game. Check console.';
+                        });
+                    } else {
+                        setTimeout(launch, 100);
+                    }
+                }
+                
+                launch();
+            }
+            
+            // Begin the startup process
+            startGame();
+        </script>
+        
+        <!-- Load the Unity loader scripts -->
+        <script src="cmpe6ltov004an30htbub9kl7/Build/PvzFM.loader.js"></script>
+        <script src="cmpe6ltov004an30htbub9kl7/Build/PvzFM.framework.js.unityweb"></script>
+    </body>
+</html>
