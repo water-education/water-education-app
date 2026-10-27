@@ -733,7 +733,7 @@
         .levelup .lu-num { font-family: 'Orbitron',monospace; font-size: 5rem; font-weight: 900; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-shadow: 0 0 60px rgba(var(--accent-rgb),0.5); }
  
         /* Cursor trail */
-        .cursor-trail { position: fixed; top: 0; left: 0; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 99999; opacity: 0; will-change: transform, opacity; }
+        .cursor-trail { position: fixed; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 99999; opacity: 0; }
  
         /* Floating emoji */
         .floating-emoji { position: fixed; font-size: 2rem; pointer-events: none; z-index: 8500; animation: floatUp 6s ease-out forwards; }
@@ -749,12 +749,6 @@
             .entrance-title { font-size: 3rem; }
             .pf-info, .profile-chip .xp-mini { display: none; }
         }
-    
-        .back-to-top { position: fixed; bottom: 24px; right: 24px; z-index: 8500; background: var(--surface-card); border: 1px solid var(--border); border-radius: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; pointer-events: none; transition: all 0.3s var(--smooth); color: var(--text-secondary); backdrop-filter: blur(10px); }
-        .back-to-top.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
-        .back-to-top:not(.show) { transform: translateY(20px); }
-        .back-to-top:hover { background: var(--surface-hover); border-color: var(--accent); color: #fff; transform: translateY(-4px) scale(1.05); }
-
     </style>
 </head>
 <body>
@@ -870,7 +864,6 @@
     </div>
  
     <div id="toast-container"></div>
-    <button class="back-to-top" id="back-to-top" title="Back to top" onclick="window.scrollTo({top:0, behavior:'smooth'})"><span class="material-icons-round">keyboard_arrow_up</span></button>
  
     <!-- ============ MAIN APP ============ -->
     <div id="app">
@@ -891,7 +884,6 @@
             <div class="topbar-search">
                 <span class="material-icons-round" style="color:var(--text-tertiary); font-size:20px">search</span>
                 <input type="text" placeholder="Search games..." id="search-input" oninput="globalSearch(this.value)" />
-                <span class="material-icons-round clear-btn" id="search-clear" onclick="document.getElementById('search-input').value=''; globalSearch('');" style="font-size:16px; cursor:pointer; opacity:0; pointer-events:none; transition:opacity 0.2s;">close</span>
             </div>
             <button class="icon-btn" title="Party Mode" onclick="togglePartyMode()"><span class="material-icons-round">celebration</span></button>
             <button class="icon-btn" title="Random game" onclick="surpriseMe()"><span class="material-icons-round">casino</span></button>
@@ -1197,7 +1189,7 @@
             { title: "Minecraft 1.12.2", emoji: "⛏", img: "182.png", cat: "sandbox", desc: "Never gets old. 🧱", href: "minecraft.html" },
             { title: "Five nights at Epstein's", emoji: "👻", img: "ep.png", cat: "horror", desc: "No comment. 🌚", href: "epstein.html" },
             { title: "Tattletail", emoji: " 😈 ", img: "607.png", cat: "horror", desc: "Idk survive ig", href: "tatle.html" },
-        ]; // End of games array (fixed truncation protection)
+        ];
         const catLabels = { platformer: "PLATFORMER", action: "ACTION", horror: "HORROR", racing: "RACING", rpg: "RPG", puzzle: "PUZZLE", survival: "SURVIVAL", sandbox: "SANDBOX", extra: "EXTRAS" };
         const catMeta = {
             platformer: { icon: 'terrain', color: '#00d4ff' },
@@ -1712,7 +1704,7 @@
         }
         function filterGames(cat, btn){ currentFilter=cat; document.querySelectorAll('#page-library .tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); playClickSound(); playWhoosh(); renderGames(); }
         function setView(v){ state.view=v; saveState(); document.getElementById('view-grid').classList.toggle('active', v==='grid'); document.getElementById('view-compact').classList.toggle('active', v==='compact'); renderGames(); playClickSound(); }
-        function globalSearch(val){ currentSearch=val; const btn = document.getElementById('search-clear'); if(btn){ btn.style.opacity = val ? '1' : '0'; btn.style.pointerEvents = val ? 'auto' : 'none'; } if(currentPage!=='library') goPage('library'); renderGames(); }
+        function globalSearch(val){ currentSearch=val; if(currentPage!=='library') goPage('library'); renderGames(); }
  
         // ============================================================
         // FAVORITES
@@ -1956,7 +1948,8 @@
                 const target = i===0?{x:mouseX,y:mouseY}:trailPos[i-1];
                 pos.x+=(target.x-pos.x)*(0.3-i*0.04); pos.y+=(target.y-pos.y)*(0.3-i*0.04);
                 const t=trails[i];
-                t.style.transform=`translate(${pos.x-4}px, ${pos.y-4}px) scale(${1-i*0.15})`;
+                t.style.left=pos.x-4+'px'; t.style.top=pos.y-4+'px';
+                t.style.transform=`scale(${1-i*0.15})`;
                 t.style.opacity= show ? (0.5-i*0.08) : 0;
                 t.style.background=colors[i]; t.style.boxShadow=`0 0 8px ${colors[i]}`;
             });
@@ -2110,7 +2103,7 @@
                 setTimeout(()=>{ document.getElementById('soundboard-modal').style.display='flex'; playNotifSound(); }, 1400);
                 localStorage.setItem('soundboardUpdateShown', 'true');
             }
-            setTimeout(()=> showToast('Pro Tip', "Don't click that "Update" button... or do 😏",'warning',6000), 6500);
+            setTimeout(()=> showToast('Pro Tip', "Don't click that \"Update\" button... or do 😏",'warning',6000), 6500);
             setTimeout(()=> showToast('Easter Egg', 'Try the Konami Code: ↑↑↓↓←→←→ B A 👾','info',5000), 12500);
             updateXPUI();
         }
@@ -2122,7 +2115,6 @@
         // ============================================================
         // INIT
         // ============================================================
-        window.addEventListener('scroll', ()=>{ const btt = document.getElementById('back-to-top'); if(btt) btt.classList.toggle('show', window.scrollY > 300); });
         window.addEventListener('load', ()=>{
             applyAccent(state.accent);
             initWarp();
